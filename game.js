@@ -2104,11 +2104,14 @@ async function createGame() {
             .select()
             .single();
 
-if (error) {
-    console.error("CREATE GAME ERROR:", error);
-    alert(error.message);
-    return;
-}
+    if (error) {
+
+        console.error(error);
+
+        alert("Could not create game.");
+
+        return;
+    }
 
     gameId = game.id;
     isHost = true;
@@ -2330,20 +2333,6 @@ async function startGame() {
         alert("Could not start game.");
 
     }
-}
-document
-    .getElementById("startGame")
-    .addEventListener(
-        "click",
-        startGame
-    );
-function startMultiplayerGame() {
-
-    document.getElementById("lobby").style.display = "none";
-
-    // Put your existing game-start function here.
-    // For example:
-    // startGameRound();
 }
 if (!debug) {
 
