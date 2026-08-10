@@ -2,7 +2,6 @@
 // LEGO CITY GEOGUESSR
 // ========================================
 
-
 // ========================================
 // SETTINGS
 // ========================================
@@ -11,31 +10,32 @@ const debug = false;
 
 const TOTAL_ROUNDS = 5;
 
-const SUPABASE_URL = "https://lhxflcsquonojgscqmpp.supabase.co";
-const SUPABASE_KEY = "sb_publishable_csl2TjzAnDCyO2LaJwMX5g_6ERH-Fki";
+const SUPABASE_URL =
+    "https://lhxflcsquonojgscqmpp.supabase.co";
 
-const supabaseClient = supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_KEY
-);
+const SUPABASE_KEY =
+    "sb_publishable_csl2TjzAnDCyO2LaJwMX5g_6ERH-Fki";
+
+const supabaseClient =
+    supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_KEY
+    );
+
+
+// ========================================
+// MULTIPLAYER STATE
+// ========================================
 
 let gameId = null;
 let playerId = null;
 let isHost = false;
 let gameChannel = null;
+let gameCode = null;
+
+
 // ========================================
 // NORMAL GAME LOCATIONS
-// ========================================
-//
-// These will be automatically generated
-// by debug mode.
-//
-// After you've finished placing all
-// locations, copy the generated array
-// here and set:
-//
-//     debug = false
-//
 // ========================================
 
 const locations = [
@@ -498,29 +498,23 @@ const locations = [
 // ========================================
 
 let currentRound = 1;
-
 let totalScore = 0;
-
 let currentLocation = null;
 
 let playerGuess = null;
 let guessMade = false;
+
 
 // ========================================
 // CAMERA
 // ========================================
 
 let zoom = 1;
-
 let panX = 0;
-
 let panY = 0;
 
-
 const MIN_ZOOM = 0.5;
-
 const MAX_ZOOM = 15;
-
 const ZOOM_STEP = 0.25;
 
 
@@ -531,11 +525,9 @@ const ZOOM_STEP = 0.25;
 let dragging = false;
 
 let dragStartX = 0;
-
 let dragStartY = 0;
 
 let startPanX = 0;
-
 let startPanY = 0;
 
 let mouseMoved = false;
@@ -550,102 +542,85 @@ const mapView =
         "map-view"
     );
 
-
 const mapWrapper =
     document.getElementById(
         "map-wrapper"
     );
-
 
 const map =
     document.getElementById(
         "map"
     );
 
-
 const guessMarker =
     document.getElementById(
         "guess-marker"
     );
-
 
 const correctMarker =
     document.getElementById(
         "correct-marker"
     );
 
-
 const line =
     document.getElementById(
         "line"
     );
-
 
 const image =
     document.getElementById(
         "location-image"
     );
 
-
 const zoomInButton =
     document.getElementById(
         "zoom-in"
     );
-
 
 const zoomOutButton =
     document.getElementById(
         "zoom-out"
     );
 
-
 const resetZoomButton =
     document.getElementById(
         "reset-zoom"
     );
-
 
 const guessButton =
     document.getElementById(
         "guess-button"
     );
 
-
 const roundText =
     document.getElementById(
         "round"
     );
-
 
 const scoreText =
     document.getElementById(
         "score"
     );
 
-
 const result =
     document.getElementById(
         "result"
     );
-
 
 const resultTitle =
     document.getElementById(
         "result-title"
     );
 
-
 const distanceText =
     document.getElementById(
         "distance"
     );
 
-
 const pointsText =
     document.getElementById(
         "round-points"
     );
-
 
 const nextButton =
     document.getElementById(
@@ -662,9 +637,7 @@ function updateCamera() {
     mapWrapper.style.transform =
         `translate(${panX}px, ${panY}px) scale(${zoom})`;
 
-
     updateMarkerSizes();
-
 }
 
 
@@ -675,13 +648,10 @@ function updateCamera() {
 function resetCamera() {
 
     zoom = 1;
-
     panX = 0;
-
     panY = 0;
 
     updateCamera();
-
 }
 
 
@@ -694,14 +664,11 @@ function updateMarkerSizes() {
     const inverseScale =
         1 / zoom;
 
-
     guessMarker.style.transform =
         `translate(-50%, -50%) scale(${inverseScale})`;
 
-
     correctMarker.style.transform =
         `translate(-50%, -50%) scale(${inverseScale})`;
-
 }
 
 
@@ -761,14 +728,10 @@ mapView.addEventListener(
 
         event.preventDefault();
 
-
         const oldZoom =
             zoom;
 
-
-        if (
-            event.deltaY < 0
-        ) {
+        if (event.deltaY < 0) {
 
             zoom =
                 Math.min(
@@ -786,20 +749,16 @@ mapView.addEventListener(
 
         }
 
-
         const rect =
             mapView.getBoundingClientRect();
-
 
         const mouseX =
             event.clientX -
             rect.left;
 
-
         const mouseY =
             event.clientY -
             rect.top;
-
 
         panX =
             mouseX -
@@ -812,7 +771,6 @@ mapView.addEventListener(
             ) *
             zoom;
 
-
         panY =
             mouseY -
             (
@@ -823,7 +781,6 @@ mapView.addEventListener(
                 oldZoom
             ) *
             zoom;
-
 
         updateCamera();
 
@@ -852,28 +809,21 @@ mapView.addEventListener(
 
         }
 
-
         dragging = true;
-
         mouseMoved = false;
-
 
         mapView.classList.add(
             "dragging"
         );
 
-
         dragStartX =
             event.clientX;
-
 
         dragStartY =
             event.clientY;
 
-
         startPanX =
             panX;
-
 
         startPanY =
             panY;
@@ -894,16 +844,13 @@ window.addEventListener(
             return;
         }
 
-
         const dx =
             event.clientX -
             dragStartX;
 
-
         const dy =
             event.clientY -
             dragStartY;
-
 
         if (
             Math.abs(dx) > 5 ||
@@ -914,16 +861,13 @@ window.addEventListener(
 
         }
 
-
         panX =
             startPanX +
             dx;
 
-
         panY =
             startPanY +
             dy;
-
 
         updateCamera();
 
@@ -966,7 +910,6 @@ function placeMarker(
         ) *
         map.offsetWidth;
 
-
     const y =
         (
             yPercent /
@@ -974,76 +917,18 @@ function placeMarker(
         ) *
         map.offsetHeight;
 
-
     marker.style.left =
         x + "px";
-
 
     marker.style.top =
         y + "px";
 
-
     marker.style.transform =
         `translate(-50%, -50%) scale(${1 / zoom})`;
 
-
     marker.style.display =
         "block";
-
 }
-
-
-// ========================================
-// NORMAL GAME CLICK
-// ========================================
-
-mapView.addEventListener(
-    "click",
-    function(event) {
-
-        if (debug) {
-            return;
-        }
-
-        if (guessMade) {
-            return;
-        }
-
-        if (mouseMoved) {
-            return;
-        }
-
-
-        if (!currentLocation) {
-            return;
-        }
-
-
-        const position =
-            getMapPosition(event);
-
-
-        if (!position) {
-            return;
-        }
-
-
-        playerGuess =
-            position;
-
-
-        placeMarker(
-            guessMarker,
-            position.x,
-            position.y
-        );
-
-
-        guessButton.disabled =
-            false;
-
-    }
-);
 
 
 // ========================================
@@ -1055,44 +940,35 @@ function getMapPosition(event) {
     const rect =
         mapView.getBoundingClientRect();
 
-
     const screenX =
         event.clientX -
         rect.left;
-
 
     const screenY =
         event.clientY -
         rect.top;
 
-
     const cameraX =
         screenX -
         panX;
-
 
     const cameraY =
         screenY -
         panY;
 
-
     const mapX =
         cameraX /
         zoom;
-
 
     const mapY =
         cameraY /
         zoom;
 
-
     const mapWidth =
         map.offsetWidth;
 
-
     const mapHeight =
         map.offsetHeight;
-
 
     const x =
         (
@@ -1101,14 +977,12 @@ function getMapPosition(event) {
         ) *
         100;
 
-
     const y =
         (
             mapY /
             mapHeight
         ) *
         100;
-
 
     if (
         x < 0 ||
@@ -1120,7 +994,6 @@ function getMapPosition(event) {
         return null;
 
     }
-
 
     return {
 
@@ -1135,7 +1008,78 @@ function getMapPosition(event) {
             ) / 100
 
     };
+}
 
+
+// ========================================
+// SEEDED RANDOM
+// ========================================
+
+function stringToSeed(str) {
+
+    let hash = 0;
+
+    for (
+        let i = 0;
+        i < str.length;
+        i++
+    ) {
+
+        hash =
+            (
+                (hash << 5) -
+                hash
+            ) +
+            str.charCodeAt(i);
+
+        hash |= 0;
+    }
+
+    return Math.abs(hash);
+}
+
+
+function seededRandom(seed) {
+
+    const x =
+        Math.sin(seed) *
+        10000;
+
+    return x -
+        Math.floor(x);
+}
+
+
+// ========================================
+// GET LOCATION FOR ROUND
+// ========================================
+
+function getLocationForRound() {
+
+    if (!gameCode) {
+
+        console.error(
+            "No game code available."
+        );
+
+        return null;
+
+    }
+
+    const seed =
+        stringToSeed(gameCode) +
+        currentRound * 1000;
+
+    const random =
+        seededRandom(seed);
+
+    const index =
+        Math.floor(
+            random *
+            locations.length
+        );
+
+    return locations[index];
 }
 
 
@@ -1148,29 +1092,118 @@ function startRound() {
     playerGuess = null;
     guessMade = false;
 
-    guessMarker.style.display = "none";
-    correctMarker.style.display = "none";
-    line.style.display = "none";
+    guessMarker.style.display =
+        "none";
 
-    result.classList.add("hidden");
+    correctMarker.style.display =
+        "none";
 
-    guessButton.disabled = true;
-    guessButton.textContent = "Make Guess";
+    line.style.display =
+        "none";
 
-    roundText.textContent = currentRound;
-    scoreText.textContent = totalScore;
+    result.classList.add(
+        "hidden"
+    );
+
+    guessButton.disabled =
+        true;
+
+    guessButton.textContent =
+        "Make Guess";
+
+    roundText.textContent =
+        currentRound;
+
+    scoreText.textContent =
+        totalScore;
 
     resetCamera();
 
-    currentLocation =
-        locations[
-            Math.floor(
-                Math.random() * locations.length
-            )
-        ];
 
-    image.src = currentLocation.image;
+    // ==================================
+    // MULTIPLAYER LOCATION
+    // ==================================
+
+    if (gameCode) {
+
+        currentLocation =
+            getLocationForRound();
+
+    }
+
+    // ==================================
+    // SINGLEPLAYER LOCATION
+    // ==================================
+
+    else {
+
+        currentLocation =
+            locations[
+                Math.floor(
+                    Math.random() *
+                    locations.length
+                )
+            ];
+
+    }
+
+
+    if (currentLocation) {
+
+        image.src =
+            currentLocation.image;
+
+    }
+
 }
+
+
+// ========================================
+// NORMAL GAME CLICK
+// ========================================
+
+mapView.addEventListener(
+    "click",
+    function(event) {
+
+        // Debug mode handles clicks separately
+        if (debug) {
+            return;
+        }
+
+        if (guessMade) {
+            return;
+        }
+
+        if (mouseMoved) {
+            return;
+        }
+
+        if (!currentLocation) {
+            return;
+        }
+
+        const position =
+            getMapPosition(event);
+
+        if (!position) {
+            return;
+        }
+
+        playerGuess =
+            position;
+
+        placeMarker(
+            guessMarker,
+            position.x,
+            position.y
+        );
+
+        guessButton.disabled =
+            false;
+
+    }
+);
 
 
 // ========================================
@@ -1191,16 +1224,13 @@ guessButton.addEventListener(
                 !playerGuess ||
                 !currentLocation
             ) {
+
                 return;
+
             }
-
-
-            // Mark the round as guessed
 
             guessMade = true;
 
-
-            // Calculate distance
 
             const distance =
                 calculateDistance(
@@ -1211,23 +1241,19 @@ guessButton.addEventListener(
                 );
 
 
-            // Calculate points
-
             const points =
                 calculatePoints(
                     distance
                 );
 
 
-            // Add score
+            totalScore +=
+                points;
 
-            totalScore += points;
 
             scoreText.textContent =
                 totalScore;
 
-
-            // Show the REAL location
 
             placeMarker(
                 correctMarker,
@@ -1235,8 +1261,6 @@ guessButton.addEventListener(
                 currentLocation.y
             );
 
-
-            // Draw line between guesses
 
             drawLine(
                 playerGuess.x,
@@ -1246,14 +1270,10 @@ guessButton.addEventListener(
             );
 
 
-            // Show result
-
             result.classList.remove(
                 "hidden"
             );
 
-
-            // Result title
 
             if (points >= 4500) {
 
@@ -1289,10 +1309,9 @@ guessButton.addEventListener(
                 points;
 
 
-            // Change the SAME button
-
             if (
-                currentRound >= TOTAL_ROUNDS
+                currentRound >=
+                TOTAL_ROUNDS
             ) {
 
                 guessButton.textContent =
@@ -1305,8 +1324,6 @@ guessButton.addEventListener(
 
             }
 
-
-            // Keep button enabled
 
             guessButton.disabled =
                 false;
@@ -1353,12 +1370,12 @@ function calculateDistance(
 ) {
 
     const dx =
-        x1 - x2;
-
+        x1 -
+        x2;
 
     const dy =
-        y1 - y2;
-
+        y1 -
+        y2;
 
     return Math.sqrt(
         dx * dx +
@@ -1384,13 +1401,11 @@ function calculatePoints(
 
     }
 
-
     const score =
         5000 *
         Math.exp(
             -distance / 10
         );
-
 
     return Math.max(
         0,
@@ -1414,10 +1429,8 @@ function drawLine(
     const mapWidth =
         map.offsetWidth;
 
-
     const mapHeight =
         map.offsetHeight;
-
 
     const startX =
         (
@@ -1426,14 +1439,12 @@ function drawLine(
         ) *
         mapWidth;
 
-
     const startY =
         (
             y1 /
             100
         ) *
         mapHeight;
-
 
     const endX =
         (
@@ -1442,7 +1453,6 @@ function drawLine(
         ) *
         mapWidth;
 
-
     const endY =
         (
             y2 /
@@ -1450,23 +1460,19 @@ function drawLine(
         ) *
         mapHeight;
 
-
     const dx =
         endX -
         startX;
 
-
     const dy =
         endY -
         startY;
-
 
     const length =
         Math.sqrt(
             dx * dx +
             dy * dy
         );
-
 
     const angle =
         Math.atan2(
@@ -1476,30 +1482,22 @@ function drawLine(
         180 /
         Math.PI;
 
-
     line.style.left =
         startX + "px";
-
 
     line.style.top =
         startY + "px";
 
-
     line.style.width =
         length + "px";
 
-
     line.style.transform =
         `rotate(${angle}deg)`;
-
 
     line.style.display =
         "block";
 
 }
-
-
-
 
 
 // ========================================
@@ -1512,16 +1510,13 @@ function showFinalScore() {
         "hidden"
     );
 
-
     resultTitle.textContent =
         "🏆 Game Complete!";
-
 
     distanceText.textContent =
         "You played " +
         TOTAL_ROUNDS +
         " rounds.";
-
 
     pointsText.textContent =
         "Final score: " +
@@ -1532,10 +1527,8 @@ function showFinalScore() {
             5000
         );
 
-
     nextButton.textContent =
         "Play Again";
-
 
     nextButton.onclick =
         function() {
@@ -1544,7 +1537,8 @@ function showFinalScore() {
 
             totalScore = 0;
 
-            nextButton.onclick = null;
+            nextButton.onclick =
+                null;
 
             startRound();
 
@@ -1554,9 +1548,7 @@ function showFinalScore() {
 
 
 // ============================================================
-// ============================================================
 // DEBUG LOCATION EDITOR
-// ============================================================
 // ============================================================
 
 const debugPanel =
@@ -1564,55 +1556,44 @@ const debugPanel =
         "debug-panel"
     );
 
-
 const imageFolder =
     document.getElementById(
         "image-folder"
     );
-
 
 const debugImageNumber =
     document.getElementById(
         "debug-image-number"
     );
 
-
 const debugImageTotal =
     document.getElementById(
         "debug-image-total"
     );
-
 
 const debugFilename =
     document.getElementById(
         "debug-filename"
     );
 
-
 const debugNext =
     document.getElementById(
         "debug-next"
     );
-
 
 const debugCopy =
     document.getElementById(
         "debug-copy"
     );
 
-
 const debugCode =
     document.getElementById(
         "debug-code"
     );
 
-
 let debugFiles = [];
-
 let debugIndex = 0;
-
 let debugLocations = [];
-
 let debugPosition = null;
 
 
@@ -1636,13 +1617,15 @@ imageFolder.addEventListener(
     "change",
     function(event) {
 
+        if (!debug) {
+            return;
+        }
+
         const files =
             Array.from(
                 event.target.files
             );
 
-
-        // Keep image files only
 
         debugFiles =
             files.filter(
@@ -1653,16 +1636,17 @@ imageFolder.addEventListener(
                             "image/"
                         );
 
-
                     const filename =
                         file.name.toLowerCase();
 
 
-                    // Ignore map.jpg
-
                     const isMap =
                         filename ===
-                        "map.jpg";
+                        "map.jpg" ||
+                        filename ===
+                        "map.png" ||
+                        filename ===
+                        "map.jpeg";
 
 
                     return (
@@ -1673,8 +1657,6 @@ imageFolder.addEventListener(
                 }
             );
 
-
-        // Sort naturally
 
         debugFiles.sort(
             function(a, b) {
@@ -1693,9 +1675,7 @@ imageFolder.addEventListener(
 
 
         debugIndex = 0;
-
         debugLocations = [];
-
         debugPosition = null;
 
 
@@ -1727,7 +1707,6 @@ imageFolder.addEventListener(
         debugCopy.disabled =
             false;
 
-
         loadDebugImage();
 
     }
@@ -1753,16 +1732,16 @@ function loadDebugImage() {
 
 
     const file =
-        debugFiles[debugIndex];
+        debugFiles[
+            debugIndex
+        ];
 
 
     debugImageNumber.textContent =
         debugIndex + 1;
 
-
     debugImageTotal.textContent =
         debugFiles.length;
-
 
     debugFilename.textContent =
         file.name;
@@ -1781,16 +1760,15 @@ function loadDebugImage() {
     guessMarker.style.display =
         "none";
 
-
     correctMarker.style.display =
         "none";
-
 
     line.style.display =
         "none";
 
 
-    debugPosition = null;
+    debugPosition =
+        null;
 
 
     debugNext.disabled =
@@ -1810,99 +1788,43 @@ function loadDebugImage() {
 // DEBUG MAP CLICK
 // ========================================
 
-function handleDebugClick(
-    event
-) {
-
-    if (
-        debugFiles.length === 0
-    ) {
-
-        return;
-
-    }
-
-
-    const position =
-        getMapPosition(
-            event
-        );
-
-
-    if (!position) {
-
-        return;
-
-    }
-
-
-    debugPosition =
-        position;
-
-
-    placeMarker(
-        guessMarker,
-        position.x,
-        position.y
-    );
-
-
-    const file =
-        debugFiles[debugIndex];
-
-
-    const code =
-`{
-    image: "images/${file.name}",
-    x: ${position.x},
-    y: ${position.y}
-},`;
-
-
-    debugCode.textContent =
-        code;
-
-
-    debugNext.disabled =
-        false;
-
-}
-
-
-// ========================================
-// DEBUG CLICK
-// ========================================
-
 mapView.addEventListener(
     "click",
     function(event) {
 
-        if (debug) {
+        // IMPORTANT:
+        // Only debug mode gets here.
+        if (!debug) {
             return;
         }
 
-        // Don't allow another guess
-        // after the round has been guessed.
-        if (guessMade) {
+        if (
+            debugFiles.length === 0
+        ) {
+
             return;
+
         }
 
         if (mouseMoved) {
             return;
         }
 
-        if (!currentLocation) {
-            return;
-        }
 
         const position =
-            getMapPosition(event);
+            getMapPosition(
+                event
+            );
+
 
         if (!position) {
             return;
         }
 
-        playerGuess = position;
+
+        debugPosition =
+            position;
+
 
         placeMarker(
             guessMarker,
@@ -1910,7 +1832,27 @@ mapView.addEventListener(
             position.y
         );
 
-        guessButton.disabled = false;
+
+        const file =
+            debugFiles[
+                debugIndex
+            ];
+
+
+        const code =
+`{
+    image: "images/${file.name}",
+    x: ${position.x},
+    y: ${position.y}
+},`;
+
+
+        debugCode.textContent =
+            code;
+
+
+        debugNext.disabled =
+            false;
 
     }
 );
@@ -1924,15 +1866,19 @@ debugNext.addEventListener(
     "click",
     function() {
 
-        if (!debugPosition) {
-
+        if (!debug) {
             return;
+        }
 
+        if (!debugPosition) {
+            return;
         }
 
 
         const file =
-            debugFiles[debugIndex];
+            debugFiles[
+                debugIndex
+            ];
 
 
         debugLocations.push({
@@ -1952,7 +1898,6 @@ debugNext.addEventListener(
 
         debugIndex++;
 
-
         loadDebugImage();
 
     }
@@ -1966,6 +1911,10 @@ debugNext.addEventListener(
 debugCopy.addEventListener(
     "click",
     async function() {
+
+        if (!debug) {
+            return;
+        }
 
         if (
             debugLocations.length === 0
@@ -2004,6 +1953,7 @@ debugCopy.addEventListener(
                 },
                 1500
             );
+
 
         } catch (error) {
 
@@ -2067,133 +2017,285 @@ function finishDebugMode() {
         createLocationsCode();
 
 }
+
+
+// ============================================================
+// MULTIPLAYER
+// ============================================================
+
+
+// ========================================
+// GENERATE ROOM CODE
+// ========================================
+
 function generateGameCode() {
 
-    const characters = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    const characters =
+        "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
     let code = "";
 
-    for (let i = 0; i < 6; i++) {
-        code += characters[
-            Math.floor(Math.random() * characters.length)
-        ];
+    for (
+        let i = 0;
+        i < 6;
+        i++
+    ) {
+
+        code +=
+            characters[
+                Math.floor(
+                    Math.random() *
+                    characters.length
+                )
+            ];
+
     }
 
     return code;
+
 }
 
+
+// ========================================
+// CREATE GAME
+// ========================================
 
 async function createGame() {
 
     const name =
-        document.getElementById("playerName").value.trim();
+        document
+            .getElementById(
+                "playerName"
+            )
+            .value
+            .trim();
+
 
     if (!name) {
-        alert("Enter your name first.");
+
+        alert(
+            "Enter your name first."
+        );
+
         return;
+
     }
 
-    const code = generateGameCode();
 
-    const { data: game, error } =
+    const code =
+        generateGameCode();
+
+
+    // Store room code locally
+    gameCode =
+        code;
+
+
+    const {
+        data: game,
+        error
+    } =
         await supabaseClient
             .from("games")
             .insert({
-                code: code
+
+                code:
+                    code
+
             })
             .select()
             .single();
+
 
     if (error) {
 
-        console.error(error);
+        console.error(
+            "CREATE GAME ERROR:",
+            error
+        );
 
-        alert("Could not create game.");
+        alert(
+            error.message ||
+            "Could not create game."
+        );
 
         return;
+
     }
 
-    gameId = game.id;
-    isHost = true;
 
-    const { data: player, error: playerError } =
+    gameId =
+        game.id;
+
+    isHost =
+        true;
+
+
+    const {
+        data: player,
+        error: playerError
+    } =
         await supabaseClient
             .from("players")
             .insert({
-                game_id: gameId,
-                name: name
+
+                game_id:
+                    gameId,
+
+                name:
+                    name
+
             })
             .select()
             .single();
 
+
     if (playerError) {
 
-        console.error(playerError);
+        console.error(
+            playerError
+        );
+
+        alert(
+            playerError.message
+        );
 
         return;
+
     }
 
-    playerId = player.id;
 
-    showWaitingRoom(code);
+    playerId =
+        player.id;
+
+
+    showWaitingRoom(
+        code
+    );
+
 
     listenForPlayers();
+
 }
+
+
+// ========================================
+// JOIN GAME
+// ========================================
+
 async function joinGame() {
 
     const name =
-        document.getElementById("playerName").value.trim();
+        document
+            .getElementById(
+                "playerName"
+            )
+            .value
+            .trim();
+
 
     const code =
-        document.getElementById("gameCode").value
+        document
+            .getElementById(
+                "gameCode"
+            )
+            .value
             .trim()
             .toUpperCase();
 
+
     if (!name) {
-        alert("Enter your name first.");
+
+        alert(
+            "Enter your name first."
+        );
+
         return;
+
     }
+
 
     if (!code) {
-        alert("Enter a game code.");
+
+        alert(
+            "Enter a game code."
+        );
+
         return;
+
     }
 
 
-    const { data: game, error } =
+    const {
+        data: game,
+        error
+    } =
         await supabaseClient
             .from("games")
             .select("*")
-            .eq("code", code)
+            .eq(
+                "code",
+                code
+            )
             .single();
 
 
-    if (error || !game) {
+    if (
+        error ||
+        !game
+    ) {
 
-        alert("Game not found.");
+        alert(
+            "Game not found."
+        );
 
         return;
+
     }
 
 
-    if (game.status !== "waiting") {
+    if (
+        game.status !==
+        "waiting"
+    ) {
 
-        alert("That game has already started.");
+        alert(
+            "That game has already started."
+        );
 
         return;
+
     }
 
 
-    gameId = game.id;
-    isHost = false;
+    gameId =
+        game.id;
 
 
-    const { data: player, error: playerError } =
+    // IMPORTANT:
+    // Everyone gets the same seed.
+    gameCode =
+        code;
+
+
+    isHost =
+        false;
+
+
+    const {
+        data: player,
+        error: playerError
+    } =
         await supabaseClient
             .from("players")
             .insert({
-                game_id: gameId,
-                name: name
+
+                game_id:
+                    gameId,
+
+                name:
+                    name
+
             })
             .select()
             .single();
@@ -2201,68 +2303,155 @@ async function joinGame() {
 
     if (playerError) {
 
-        console.error(playerError);
+        console.error(
+            playerError
+        );
+
+        alert(
+            playerError.message
+        );
 
         return;
+
     }
 
 
-    playerId = player.id;
+    playerId =
+        player.id;
 
-    showWaitingRoom(code);
+
+    showWaitingRoom(
+        code
+    );
+
 
     listenForPlayers();
+
 }
-function showWaitingRoom(code) {
 
-    document.getElementById("menu").style.display = "none";
 
-    document.getElementById("waitingRoom").style.display = "block";
+// ========================================
+// SHOW WAITING ROOM
+// ========================================
 
-    document.getElementById("displayGameCode").textContent = code;
+function showWaitingRoom(
+    code
+) {
+
+    document
+        .getElementById(
+            "menu"
+        )
+        .style.display =
+        "none";
+
+
+    document
+        .getElementById(
+            "waitingRoom"
+        )
+        .style.display =
+        "block";
+
+
+    document
+        .getElementById(
+            "displayGameCode"
+        )
+        .textContent =
+        code;
+
 
     if (isHost) {
 
-        document.getElementById("startGame").style.display = "block";
+        document
+            .getElementById(
+                "startGame"
+            )
+            .style.display =
+            "block";
 
     }
+
 }
+
+
+// ========================================
+// UPDATE PLAYER LIST
+// ========================================
+
 async function updatePlayerList() {
 
-    const { data: players, error } =
+    const {
+        data: players,
+        error
+    } =
         await supabaseClient
             .from("players")
             .select("*")
-            .eq("game_id", gameId)
-            .order("created_at");
+            .eq(
+                "game_id",
+                gameId
+            )
+            .order(
+                "created_at"
+            );
 
 
     if (error) {
 
-        console.error(error);
+        console.error(
+            error
+        );
 
         return;
+
     }
 
 
     const list =
-        document.getElementById("playerList");
+        document.getElementById(
+            "playerList"
+        );
 
-    list.innerHTML = "";
+
+    list.innerHTML =
+        "";
 
 
-    players.forEach(player => {
+    players.forEach(
+        function(player) {
 
-        const div = document.createElement("div");
+            const div =
+                document.createElement(
+                    "div"
+                );
 
-        div.textContent =
-            player.name +
-            (player.id === playerId ? " (You)" : "");
 
-        list.appendChild(div);
+            div.textContent =
+                player.name +
+                (
+                    player.id ===
+                    playerId
+                        ? " (You)"
+                        : ""
+                );
 
-    });
+
+            list.appendChild(
+                div
+            );
+
+        }
+    );
+
 }
+
+
+// ========================================
+// LISTEN FOR PLAYERS
+// ========================================
+
 function listenForPlayers() {
 
     updatePlayerList();
@@ -2270,35 +2459,47 @@ function listenForPlayers() {
 
     gameChannel =
         supabaseClient
-            .channel("game-" + gameId)
+            .channel(
+                "game-" +
+                gameId
+            )
 
+
+            // PLAYER CHANGES
             .on(
                 "postgres_changes",
                 {
                     event: "*",
                     schema: "public",
                     table: "players",
-                    filter: "game_id=eq." + gameId
+                    filter:
+                        "game_id=eq." +
+                        gameId
                 },
-                () => {
+                function() {
 
                     updatePlayerList();
 
                 }
             )
 
+
+            // GAME CHANGES
             .on(
                 "postgres_changes",
                 {
                     event: "UPDATE",
                     schema: "public",
                     table: "games",
-                    filter: "id=eq." + gameId
+                    filter:
+                        "id=eq." +
+                        gameId
                 },
-                payload => {
+                function(payload) {
 
                     if (
-                        payload.new.status === "playing"
+                        payload.new.status ===
+                        "playing"
                     ) {
 
                         startMultiplayerGame();
@@ -2308,8 +2509,16 @@ function listenForPlayers() {
                 }
             )
 
+
             .subscribe();
+
 }
+
+
+// ========================================
+// START GAME
+// ========================================
+
 async function startGame() {
 
     if (!isHost) {
@@ -2317,30 +2526,74 @@ async function startGame() {
     }
 
 
-    const { error } =
+    const {
+        error
+    } =
         await supabaseClient
             .from("games")
             .update({
-                status: "playing"
+
+                status:
+                    "playing"
+
             })
-            .eq("id", gameId);
+            .eq(
+                "id",
+                gameId
+            );
 
 
     if (error) {
 
-        console.error(error);
+        console.error(
+            error
+        );
 
-        alert("Could not start game.");
+        alert(
+            "Could not start game."
+        );
+
+        return;
 
     }
+
 }
-if (!debug) {
+
+
+// ========================================
+// START MULTIPLAYER GAME
+// ========================================
+
+function startMultiplayerGame() {
+
+    document
+        .getElementById(
+            "lobby"
+        )
+        .style.display =
+        "none";
+
+
+    currentRound =
+        1;
+
+    totalScore =
+        0;
+
 
     startRound();
 
 }
+
+
+// ========================================
+// BUTTONS
+// ========================================
+
 document
-    .getElementById("createGame")
+    .getElementById(
+        "createGame"
+    )
     .addEventListener(
         "click",
         createGame
@@ -2348,9 +2601,37 @@ document
 
 
 document
-    .getElementById("joinGame")
+    .getElementById(
+        "joinGame"
+    )
     .addEventListener(
         "click",
         joinGame
     );
-    
+
+
+document
+    .getElementById(
+        "startGame"
+    )
+    .addEventListener(
+        "click",
+        startGame
+    );
+
+
+// ========================================
+// START SINGLEPLAYER
+// ========================================
+
+if (!debug) {
+
+    // Only automatically start
+    // singleplayer when we are NOT
+    // inside a multiplayer lobby.
+
+    // If your page starts with the
+    // multiplayer lobby, this should
+    // normally be removed.
+
+}
