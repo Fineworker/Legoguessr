@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>LEGO City GeoGuessr</title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+
+</head>
+
+
+<body>
+
+<header>
+
+    <h1>🧱 LEGO City GeoGuessr</h1>
+
+    <div class="stats">
+
+        <span>
+            Round:
+            <b id="round">1</b>/5
+        </span>
+
+        <span>
+            Score:
+            <b id="score">0</b>
+        </span>
+
+    </div>
+
+</header>
+
+
+<main>
+
+
+    <!-- ==================================
+         DEBUG PANEL
+    =================================== -->
+
+    <div
+        id="debug-panel"
+        class="debug-panel"
+    >
+
+        <h2>🛠️ Debug Location Editor</h2>
+
+        <p>
+            Select your
+            <strong>images</strong>
+            folder.
+        </p>
+
+        <p class="debug-note">
+            All image files will automatically
+            be loaded except map.png.
+        </p>
+
+
+        <input
+            type="file"
+            id="image-folder"
+            webkitdirectory
+            directory
+            multiple
+        >
+
+
+        <div class="debug-info">
+
+            <p>
+                Image:
+                <strong id="debug-image-number">
+                    0
+                </strong>
+                /
+                <strong id="debug-image-total">
+                    0
+                </strong>
+            </p>
+
+
+            <p id="debug-filename">
+                No folder selected
+            </p>
+
+        </div>
+
+
+        <div class="debug-buttons">
+
+            <button
+                id="debug-next"
+                disabled
+            >
+                Next Image
+            </button>
+
+
+            <button
+                id="debug-copy"
+                disabled
+            >
+                Copy All Locations
+            </button>
+
+        </div>
+
+
+        <pre id="debug-code">Select your images folder to begin.</pre>
+
+    </div>
+
+
+
+    <!-- ==================================
+         GAME
+    =================================== -->
+
+    <section class="game">
+
+
+        <!-- ==============================
+             SCREENSHOT
+        =============================== -->
+
+        <div class="photo-container">
+
+            <h2>
+                Where was this taken?
+            </h2>
+
+
+            <div class="photo-wrapper">
+
+                <div class="photo-image-container">
+
+                    <img
+                        id="location-image"
+                        src=""
+                        alt="LEGO City location"
+                    >
+
+                    <div class="location-hexagon"></div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- ==============================
+             MAP
+        =============================== -->
+
+        <div class="map-container">
+
+            <h2>
+                Find the location
+            </h2>
+
+
+            <!-- MAP CONTROLS -->
+
+            <div class="map-controls">
+
+                <button id="zoom-out">
+                    −
+                </button>
+
+                <button id="reset-zoom">
+                    Reset
+                </button>
+
+                <button id="zoom-in">
+                    +
+                </button>
+
+            </div>
+
+
+            <p class="map-help">
+
+                🖱️ Scroll = zoom
+                •
+                Drag = move
+                •
+                Click = guess
+
+            </p>
+
+
+            <!-- MAP VIEW -->
+
+            <div id="map-view">
+
+
+                <!--
+
+                    EVERYTHING INSIDE THIS
+                    WRAPPER IS PART OF THE
+                    MAP WORLD.
+
+                -->
+
+                <div id="map-wrapper">
+
+
+                    <!-- MAP -->
+
+                    <img
+                        id="map"
+                        src="images/map.png"
+                        alt="LEGO City map"
+                    >
+
+
+                    <!-- PLAYER MARKER -->
+
+                    <div
+                        id="guess-marker"
+                        class="map-marker"
+                    ></div>
+
+
+                    <!-- CORRECT MARKER -->
+
+                    <div
+                        id="correct-marker"
+                        class="map-marker"
+                    ></div>
+
+
+                    <!-- DISTANCE LINE -->
+
+                    <div id="line"></div>
+
+
+                </div>
+
+            </div>
+
+
+            <!-- GUESS BUTTON -->
+
+            <button
+                id="guess-button"
+                disabled
+            >
+                Make Guess
+            </button>
+
+
+        </div>
+
+
+    </section>
+
+
+
+    <!-- ==================================
+         RESULT
+    =================================== -->
+
+    <div
+        id="result"
+        class="result hidden"
+    >
+
+        <h2 id="result-title"></h2>
+
+        <p id="distance"></p>
+
+        <p id="round-points"></p>
+
+
+    </div>
+
+
+</main>
+
+
+<script src="game.js"></script>
+
+</body>
+
+</html>

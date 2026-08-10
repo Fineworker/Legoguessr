@@ -1,0 +1,617 @@
+/* ========================================
+   GENERAL
+======================================== */
+
+* {
+    box-sizing: border-box;
+}
+
+
+body {
+
+    margin: 0;
+
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
+    background: #151515;
+
+    color: white;
+
+}
+
+
+/* ========================================
+   HEADER
+======================================== */
+
+header {
+
+    background: #222;
+
+    padding:
+        15px
+        25px;
+
+    display: flex;
+
+    justify-content:
+        space-between;
+
+    align-items: center;
+
+}
+
+
+header h1 {
+
+    margin: 0;
+
+    font-size: 24px;
+
+}
+
+
+.stats {
+
+    display: flex;
+
+    gap: 25px;
+
+    font-size: 18px;
+
+}
+
+
+/* ========================================
+   MAIN
+======================================== */
+
+main {
+
+    max-width: 1500px;
+
+    margin:
+        0
+        auto;
+
+    padding: 20px;
+
+}
+
+
+/* ========================================
+   DEBUG PANEL
+======================================== */
+
+.debug-panel {
+
+    background: #3a2410;
+
+    border:
+        2px solid
+        #f39c12;
+
+    border-radius: 12px;
+
+    padding: 18px;
+
+    margin-bottom: 20px;
+
+}
+
+
+.debug-panel h2 {
+
+    margin-top: 0;
+
+    color: #f1c40f;
+
+}
+
+
+.debug-note {
+
+    color: #ccc;
+
+    font-size: 14px;
+
+}
+
+
+.debug-panel input {
+
+    margin:
+        10px
+        0;
+
+    max-width: 100%;
+
+}
+
+
+.debug-info {
+
+    margin-top: 10px;
+
+}
+
+
+#debug-filename {
+
+    font-family: monospace;
+
+    color: #7bed9f;
+
+}
+
+
+.debug-buttons {
+
+    display: flex;
+
+    gap: 8px;
+
+    flex-wrap: wrap;
+
+}
+
+
+.debug-buttons button {
+
+    width: auto;
+
+    margin-top: 5px;
+
+}
+
+
+#debug-code {
+
+    background: #111;
+
+    color: #7bed9f;
+
+    padding: 15px;
+
+    border-radius: 8px;
+
+    white-space: pre-wrap;
+
+    overflow-x: auto;
+
+    max-height: 350px;
+
+    overflow-y: auto;
+
+    font-family: monospace;
+
+}
+
+
+/* ========================================
+   GAME LAYOUT
+======================================== */
+
+.game {
+
+    display: grid;
+
+    grid-template-columns:
+        1fr
+        1fr;
+
+    gap: 20px;
+
+}
+
+
+.photo-container,
+.map-container {
+
+    background: #222;
+
+    padding: 15px;
+
+    border-radius: 12px;
+
+}
+
+
+.photo-container h2,
+.map-container h2 {
+
+    margin-top: 0;
+
+}
+
+
+/* ========================================
+   PHOTO
+======================================== */
+
+.photo-wrapper {
+
+    width: 100%;
+
+    height: 500px;
+
+    background: #000;
+
+    border-radius: 8px;
+
+    overflow: hidden;
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    position: relative;
+
+}
+
+.photo-wrapper img {
+
+    width: 100%;
+
+    height: 100%;
+
+    object-fit: contain;
+
+    user-select: none;
+    
+
+}
+
+.location-hexagon {
+    position: absolute;
+
+    bottom: 83px;
+    left: 33px;
+
+    width: 120px;
+    height: 100px;
+
+    background: #000;
+
+    clip-path: polygon(
+        25% 0%,
+        75% 0%,
+        100% 50%,
+        75% 100%,
+        25% 100%,
+        0% 50%
+    );
+
+    z-index: 10;
+
+    pointer-events: none;
+}
+/* ========================================
+   MAP CONTROLS
+======================================== */
+
+.map-controls {
+
+    display: flex;
+
+    gap: 5px;
+
+    margin-bottom: 5px;
+
+}
+
+
+.map-controls button {
+
+    width: auto;
+
+    margin: 0;
+
+    padding:
+        8px
+        15px;
+
+    font-size: 18px;
+
+    background: #444;
+
+    color: white;
+
+}
+
+
+.map-controls button:hover {
+
+    background: #555;
+
+}
+
+
+.map-help {
+
+    margin:
+        5px
+        0
+        10px;
+
+    color: #aaa;
+
+    font-size: 13px;
+
+}
+
+
+/* ========================================
+   MAP VIEW
+======================================== */
+
+#map-view {
+
+    position: relative;
+
+    width: 100%;
+
+    height: 500px;
+
+    overflow: hidden;
+
+    background: #111;
+
+    border-radius: 8px;
+
+    cursor: grab;
+
+}
+
+
+#map-view.dragging {
+
+    cursor: grabbing;
+
+}
+
+
+/* ========================================
+   MAP WORLD
+======================================== */
+
+#map-wrapper {
+
+    position: absolute;
+
+    left: 0;
+
+    top: 0;
+
+    width: 900px;
+
+    transform-origin:
+        0 0;
+
+}
+
+
+/* ========================================
+   MAP IMAGE
+======================================== */
+
+#map {
+
+    display: block;
+
+    width: 900px;
+
+    max-width: none;
+
+    height: auto;
+
+    user-select: none;
+
+    -webkit-user-drag: none;
+
+}
+
+
+/* ========================================
+   MARKERS
+======================================== */
+
+.map-marker {
+
+    position: absolute;
+
+    width: 24px;
+
+    height: 24px;
+
+    border-radius: 50%;
+
+    transform-origin:
+        center
+        center;
+
+    z-index: 20;
+
+    pointer-events: none;
+
+}
+
+
+#guess-marker {
+
+    background: #3498db;
+
+    border:
+        3px solid
+        white;
+
+    box-shadow:
+        0
+        0
+        8px
+        black;
+
+    display: none;
+
+}
+
+
+#correct-marker {
+
+    background: #e74c3c;
+
+    border:
+        3px solid
+        white;
+
+    box-shadow:
+        0
+        0
+        8px
+        black;
+
+    display: none;
+
+}
+
+
+/* ========================================
+   DISTANCE LINE
+======================================== */
+
+#line {
+
+    position: absolute;
+
+    height: 4px;
+
+    background: white;
+
+    transform-origin:
+        left
+        center;
+
+    display: none;
+
+    z-index: 10;
+
+    pointer-events: none;
+
+}
+
+
+/* ========================================
+   BUTTONS
+======================================== */
+
+button {
+
+    width: 100%;
+
+    margin-top: 15px;
+
+    padding: 14px;
+
+    border: none;
+
+    border-radius: 8px;
+
+    background: #f1c40f;
+
+    color: #111;
+
+    font-size: 18px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+
+}
+
+
+button:hover {
+
+    background: #f39c12;
+
+}
+
+
+button:disabled {
+
+    background: #555;
+
+    color: #aaa;
+
+    cursor: not-allowed;
+
+}
+
+
+/* ========================================
+   RESULT
+======================================== */
+
+.result {
+
+    margin-top: 20px;
+
+    padding: 25px;
+
+    text-align: center;
+
+    background: #222;
+
+    border-radius: 12px;
+
+}
+
+
+.result h2 {
+
+    font-size: 28px;
+
+}
+
+
+.hidden {
+
+    display: none;
+
+}
+
+
+/* ========================================
+   MOBILE
+======================================== */
+
+@media (
+    max-width: 900px
+) {
+
+    .game {
+
+        grid-template-columns:
+            1fr;
+
+    }
+
+
+    .photo-wrapper {
+
+        height: 400px;
+
+    }
+
+
+    #map-view {
+
+        height: 450px;
+
+    }
+
+}
