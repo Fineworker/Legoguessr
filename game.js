@@ -2105,11 +2105,8 @@ async function createGame() {
             .single();
 
     if (error) {
-
-        console.error(error);
-
-        alert("Could not create game.");
-
+        console.error("CREATE GAME ERROR:", error);
+        alert(error.message);
         return;
     }
 
