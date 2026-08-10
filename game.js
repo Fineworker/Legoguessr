@@ -37,7 +37,8 @@ let gameChannel = null;
 //     debug = false
 //
 // ========================================
-
+const imageName =
+    getLocationForRound(gameCode, currentRound);
 const locations = [
 
     {
@@ -1144,7 +1145,6 @@ function getMapPosition(event) {
 // ========================================
 
 function startRound() {
-
     playerGuess = null;
     guessMade = false;
 
@@ -1162,12 +1162,19 @@ function startRound() {
 
     resetCamera();
 
+    // Get the same location for everyone
+    // using the room code + round as the seed
+    const seed =
+        stringToSeed(gameCode) + currentRound * 1000;
+
+    const random =
+        seededRandom(seed);
+
+    const index =
+        Math.floor(random * locations.length);
+
     currentLocation =
-        locations[
-            Math.floor(
-                Math.random() * locations.length
-            )
-        ];
+        locations[index];
 
     image.src = currentLocation.image;
 }
@@ -2344,6 +2351,37 @@ function startMultiplayerGame() {
     // Put your existing game-start function here.
     // For example:
     // startGameRound();
+}
+function stringToSeed(str) {
+    let hash = 0;
+
+    for (let i = 0; i < str.length; i++) {
+        hash = ((hash << 5) - hash) + str.charCodeAt(i);
+        hash |= 0;
+    }
+
+    return Math.abs(hash);
+}
+
+
+function seededRandom(seed) {
+    let x = Math.sin(seed) * 10000;
+    return x - Math.floor(x);
+}
+
+
+function getLocationForRound(roomCode, round) {
+
+    const seed =
+        stringToSeed(roomCode) + round * 1000;
+
+    const random =
+        seededRandom(seed);
+
+    const index =
+        Math.floor(random * locations.length);
+
+    return locations[index];
 }
 if (!debug) {
 
