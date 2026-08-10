@@ -267,30 +267,6 @@ main {
 
 }
 
-.location-hexagon {
-    position: absolute;
-
-    bottom: 83px;
-    left: 33px;
-
-    width: 120px;
-    height: 100px;
-
-    background: #000;
-
-    clip-path: polygon(
-        25% 0%,
-        75% 0%,
-        100% 50%,
-        75% 100%,
-        25% 100%,
-        0% 50%
-    );
-
-    z-index: 10;
-
-    pointer-events: none;
-}
 /* ========================================
    MAP CONTROLS
 ======================================== */
