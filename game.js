@@ -1627,7 +1627,7 @@ let debugPosition = null;
 // HIDE DEBUG IF DISABLED
 // ========================================
 
-if (debug) {
+if (!debug) {
 
     debugPanel.style.display =
         "none";
@@ -2383,7 +2383,7 @@ function getLocationForRound(roomCode, round) {
 
     return locations[index];
 }
-if (debug) {
+if (!debug) {
 
     startRound();
 
