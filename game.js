@@ -11,7 +11,18 @@ const debug = false;
 
 const TOTAL_ROUNDS = 5;
 
+const SUPABASE_URL = "https://lhxflcsquonojgscqmpp.supabase.co";
+const SUPABASE_KEY = "sb_publishable_csl2TjzAnDCyO2LaJwMX5g_6ERH-Fki";
 
+const supabaseClient = supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+);
+
+let gameId = null;
+let playerId = null;
+let isHost = false;
+let gameChannel = null;
 // ========================================
 // NORMAL GAME LOCATIONS
 // ========================================
@@ -2056,10 +2067,304 @@ function finishDebugMode() {
         createLocationsCode();
 
 }
+function generateGameCode() {
+
+    const characters = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+    let code = "";
+
+    for (let i = 0; i < 6; i++) {
+        code += characters[
+            Math.floor(Math.random() * characters.length)
+        ];
+    }
+
+    return code;
+}
 
 
+async function createGame() {
+
+    const name =
+        document.getElementById("playerName").value.trim();
+
+    if (!name) {
+        alert("Enter your name first.");
+        return;
+    }
+
+    const code = generateGameCode();
+
+    const { data: game, error } =
+        await supabaseClient
+            .from("games")
+            .insert({
+                code: code
+            })
+            .select()
+            .single();
+
+    if (error) {
+
+        console.error(error);
+
+        alert("Could not create game.");
+
+        return;
+    }
+
+    gameId = game.id;
+    isHost = true;
+
+    const { data: player, error: playerError } =
+        await supabaseClient
+            .from("players")
+            .insert({
+                game_id: gameId,
+                name: name
+            })
+            .select()
+            .single();
+
+    if (playerError) {
+
+        console.error(playerError);
+
+        return;
+    }
+
+    playerId = player.id;
+
+    showWaitingRoom(code);
+
+    listenForPlayers();
+}
+async function joinGame() {
+
+    const name =
+        document.getElementById("playerName").value.trim();
+
+    const code =
+        document.getElementById("gameCode").value
+            .trim()
+            .toUpperCase();
+
+    if (!name) {
+        alert("Enter your name first.");
+        return;
+    }
+
+    if (!code) {
+        alert("Enter a game code.");
+        return;
+    }
+
+
+    const { data: game, error } =
+        await supabaseClient
+            .from("games")
+            .select("*")
+            .eq("code", code)
+            .single();
+
+
+    if (error || !game) {
+
+        alert("Game not found.");
+
+        return;
+    }
+
+
+    if (game.status !== "waiting") {
+
+        alert("That game has already started.");
+
+        return;
+    }
+
+
+    gameId = game.id;
+    isHost = false;
+
+
+    const { data: player, error: playerError } =
+        await supabaseClient
+            .from("players")
+            .insert({
+                game_id: gameId,
+                name: name
+            })
+            .select()
+            .single();
+
+
+    if (playerError) {
+
+        console.error(playerError);
+
+        return;
+    }
+
+
+    playerId = player.id;
+
+    showWaitingRoom(code);
+
+    listenForPlayers();
+}
+function showWaitingRoom(code) {
+
+    document.getElementById("menu").style.display = "none";
+
+    document.getElementById("waitingRoom").style.display = "block";
+
+    document.getElementById("displayGameCode").textContent = code;
+
+    if (isHost) {
+
+        document.getElementById("startGame").style.display = "block";
+
+    }
+}
+async function updatePlayerList() {
+
+    const { data: players, error } =
+        await supabaseClient
+            .from("players")
+            .select("*")
+            .eq("game_id", gameId)
+            .order("created_at");
+
+
+    if (error) {
+
+        console.error(error);
+
+        return;
+    }
+
+
+    const list =
+        document.getElementById("playerList");
+
+    list.innerHTML = "";
+
+
+    players.forEach(player => {
+
+        const div = document.createElement("div");
+
+        div.textContent =
+            player.name +
+            (player.id === playerId ? " (You)" : "");
+
+        list.appendChild(div);
+
+    });
+}
+function listenForPlayers() {
+
+    updatePlayerList();
+
+
+    gameChannel =
+        supabaseClient
+            .channel("game-" + gameId)
+
+            .on(
+                "postgres_changes",
+                {
+                    event: "*",
+                    schema: "public",
+                    table: "players",
+                    filter: "game_id=eq." + gameId
+                },
+                () => {
+
+                    updatePlayerList();
+
+                }
+            )
+
+            .on(
+                "postgres_changes",
+                {
+                    event: "UPDATE",
+                    schema: "public",
+                    table: "games",
+                    filter: "id=eq." + gameId
+                },
+                payload => {
+
+                    if (
+                        payload.new.status === "playing"
+                    ) {
+
+                        startMultiplayerGame();
+
+                    }
+
+                }
+            )
+
+            .subscribe();
+}
+async function startGame() {
+
+    if (!isHost) {
+        return;
+    }
+
+
+    const { error } =
+        await supabaseClient
+            .from("games")
+            .update({
+                status: "playing"
+            })
+            .eq("id", gameId);
+
+
+    if (error) {
+
+        console.error(error);
+
+        alert("Could not start game.");
+
+    }
+}
+document
+    .getElementById("startGame")
+    .addEventListener(
+        "click",
+        startGame
+    );
+function startMultiplayerGame() {
+
+    document.getElementById("lobby").style.display = "none";
+
+    // Put your existing game-start function here.
+    // For example:
+    // startGameRound();
+}
 if (!debug) {
 
     startRound();
 
 }
+document
+    .getElementById("createGame")
+    .addEventListener(
+        "click",
+        createGame
+    );
+
+
+document
+    .getElementById("joinGame")
+    .addEventListener(
+        "click",
+        joinGame
+    );
+    
