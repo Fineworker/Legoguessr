@@ -2377,9 +2377,6 @@ function startMultiplayerGame() {
     document.getElementById("lobby-menu").style.display =
         "none";
 
-    document.getElementById("menu").style.display =
-        "none";
-
     currentRound = 1;
     totalScore = 0;
 
@@ -2609,32 +2606,6 @@ async function startGame() {
         return;
 
     }
-
-}
-
-
-// ========================================
-// START MULTIPLAYER GAME
-// ========================================
-
-function startMultiplayerGame() {
-
-    document
-        .getElementById(
-            "lobby"
-        )
-        .style.display =
-        "none";
-
-
-    currentRound =
-        1;
-
-    totalScore =
-        0;
-
-
-    startRound();
 
 }
 
