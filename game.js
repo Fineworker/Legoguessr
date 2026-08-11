@@ -2329,7 +2329,63 @@ async function joinGame() {
 
 }
 
+// ========================================
+// LOBBY MENU BUTTON
+// ========================================
 
+const lobbyButton =
+    document.getElementById("lobby-button");
+
+const lobbyMenu =
+    document.getElementById("lobby-menu");
+
+const closeLobby =
+    document.getElementById("closeLobby");
+
+
+// Open lobby menu
+
+lobbyButton.addEventListener(
+    "click",
+    function() {
+
+        lobbyMenu.style.display = "flex";
+
+    }
+);
+
+
+// Close lobby menu
+
+closeLobby.addEventListener(
+    "click",
+    function() {
+
+        lobbyMenu.style.display = "none";
+
+    }
+);
+// ========================================
+// START MULTIPLAYER GAME
+// ========================================
+
+function startMultiplayerGame() {
+
+    document.getElementById("waitingRoom").style.display =
+        "none";
+
+    document.getElementById("lobby-menu").style.display =
+        "none";
+
+    document.getElementById("menu").style.display =
+        "none";
+
+    currentRound = 1;
+    totalScore = 0;
+
+    startRound();
+
+}
 // ========================================
 // SHOW WAITING ROOM
 // ========================================
@@ -2491,15 +2547,12 @@ function listenForPlayers() {
                     event: "UPDATE",
                     schema: "public",
                     table: "games",
-                    filter:
-                        "id=eq." +
-                        gameId
+                    filter: "id=eq." + gameId
                 },
-                function(payload) {
+                payload => {
 
                     if (
-                        payload.new.status ===
-                        "playing"
+                        payload.new.status === "playing"
                     ) {
 
                         startMultiplayerGame();
