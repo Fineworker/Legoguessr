@@ -1058,11 +1058,12 @@ function getLocationForRound() {
 
     if (!gameCode) {
 
-        console.error(
-            "No game code available."
-        );
-
-        return null;
+        return locations[
+            Math.floor(
+                Math.random() *
+                locations.length
+            )
+        ];
 
     }
 
@@ -1120,32 +1121,8 @@ function startRound() {
     resetCamera();
 
 
-    // ==================================
-    // MULTIPLAYER LOCATION
-    // ==================================
-
-    if (gameCode) {
-
-        currentLocation =
-            getLocationForRound();
-
-    }
-
-    // ==================================
-    // SINGLEPLAYER LOCATION
-    // ==================================
-
-    else {
-
-        currentLocation =
-            locations[
-                Math.floor(
-                    Math.random() *
-                    locations.length
-                )
-            ];
-
-    }
+    currentLocation =
+        getLocationForRound();
 
 
     if (currentLocation) {
@@ -2641,12 +2618,6 @@ document
 
 if (!debug) {
 
-    // Only automatically start
-    // singleplayer when we are NOT
-    // inside a multiplayer lobby.
-
-    // If your page starts with the
-    // multiplayer lobby, this should
-    // normally be removed.
+    startRound();
 
 }
