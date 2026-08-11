@@ -698,6 +698,7 @@ function updateMarkerSizes() {
 
             }
         );
+
 }
 
 
@@ -1143,6 +1144,18 @@ function startRound() {
             }
         );
 
+    document
+        .querySelectorAll(
+            ".multiplayer-line"
+        )
+        .forEach(
+            function(lineElement) {
+
+                lineElement.remove();
+
+            }
+        );
+
     multiplayerGuesses = {};
     roundRevealed = false;
     revealInProgress = false;
@@ -1257,6 +1270,7 @@ function renderMultiplayerGuesses() {
         function(guess) {
 
             if (
+                multiplayerGuesses[playerId] &&
                 guess.playerId !==
                 playerId
             ) {
@@ -1381,6 +1395,8 @@ function revealMultiplayerRound(
         totalScore;
 
     renderMultiplayerGuesses();
+
+    renderMultiplayerGuessLines();
 
     placeMarker(
         correctMarker,
@@ -3097,5 +3113,117 @@ document
 if (!debug) {
 
     startRound();
+
+}
+
+
+function createMultiplayerGuessLine(
+    guess
+) {
+
+    const mapWidth =
+        map.offsetWidth;
+
+    const mapHeight =
+        map.offsetHeight;
+
+    const startX =
+        (guess.x / 100) *
+        mapWidth;
+
+    const startY =
+        (guess.y / 100) *
+        mapHeight;
+
+    const endX =
+        (currentLocation.x / 100) *
+        mapWidth;
+
+    const endY =
+        (currentLocation.y / 100) *
+        mapHeight;
+
+    const deltaX =
+        endX - startX;
+
+    const deltaY =
+        endY - startY;
+
+    const lineLength =
+        Math.sqrt(
+            deltaX * deltaX +
+            deltaY * deltaY
+        );
+
+    const angle =
+        Math.atan2(
+            deltaY,
+            deltaX
+        ) *
+        180 /
+        Math.PI;
+
+    const lineElement =
+        document.createElement(
+            "div"
+        );
+
+    lineElement.className =
+        "multiplayer-line" +
+        (
+            guess.playerId ===
+            playerId
+                ? " multiplayer-line-own"
+                : ""
+        );
+
+    lineElement.style.left =
+        startX + "px";
+
+    lineElement.style.top =
+        startY + "px";
+
+    lineElement.style.width =
+        lineLength + "px";
+
+    lineElement.style.transform =
+        `rotate(${angle}deg)`;
+
+    mapWrapper.appendChild(
+        lineElement
+    );
+
+}
+
+
+function renderMultiplayerGuessLines() {
+
+    document
+        .querySelectorAll(
+            ".multiplayer-line"
+        )
+        .forEach(
+            function(lineElement) {
+
+                lineElement.remove();
+
+            }
+        );
+
+    if (!roundRevealed) {
+        return;
+    }
+
+    Object.values(
+        multiplayerGuesses
+    ).forEach(
+        function(guess) {
+
+            createMultiplayerGuessLine(
+                guess
+            );
+
+        }
+    );
 
 }
