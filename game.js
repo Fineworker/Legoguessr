@@ -2390,15 +2390,6 @@ function startMultiplayerGame() {
 function showWaitingRoom(
     code
 ) {
-
-    document
-        .getElementById(
-            "menu"
-        )
-        .style.display =
-        "none";
-
-
     document
         .getElementById(
             "waitingRoom"
