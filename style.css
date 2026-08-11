@@ -566,7 +566,7 @@ main {
 
 #correct-marker {
 
-    background: #e74c3c;
+    background: #f1c40f;
 
     border:
         3px solid
@@ -717,4 +717,40 @@ button:disabled {
 
     }
 
+}
+
+#guess-marker.multiplayer-own {
+    background: #2ecc71;
+}
+
+.multiplayer-marker {
+    background: #3498db;
+    border: 3px solid white;
+    box-shadow: 0 0 8px black;
+}
+
+.multiplayer-status {
+    min-height: 20px;
+    margin: 10px 0 0;
+    color: #f1c40f;
+    text-align: center;
+}
+
+#scoreboard {
+    max-width: 420px;
+    margin: 20px auto 0;
+    text-align: left;
+}
+
+.scoreboard-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 8px 12px;
+    border-bottom: 1px solid #444;
+}
+
+.scoreboard-row:first-child {
+    color: #f1c40f;
+    font-weight: bold;
 }

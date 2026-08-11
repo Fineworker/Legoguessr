@@ -32,6 +32,12 @@ let playerId = null;
 let isHost = false;
 let gameChannel = null;
 let gameCode = null;
+let currentPlayerName = "Player";
+let multiplayerPlayers = [];
+let multiplayerGuesses = {};
+let multiplayerScores = {};
+let roundRevealed = false;
+let revealInProgress = false;
 
 
 // ========================================
@@ -627,6 +633,16 @@ const nextButton =
         "next-button"
     );
 
+const multiplayerStatus =
+    document.getElementById(
+        "multiplayer-status"
+    );
+
+const scoreboard =
+    document.getElementById(
+        "scoreboard"
+    );
+
 
 // ========================================
 // CAMERA
@@ -669,6 +685,19 @@ function updateMarkerSizes() {
 
     correctMarker.style.transform =
         `translate(-50%, -50%) scale(${inverseScale})`;
+
+    document
+        .querySelectorAll(
+            ".multiplayer-marker"
+        )
+        .forEach(
+            function(marker) {
+
+                marker.style.transform =
+                    `translate(-50%, -50%) scale(${inverseScale})`;
+
+            }
+        );
 }
 
 
@@ -1102,6 +1131,29 @@ function startRound() {
     line.style.display =
         "none";
 
+    document
+        .querySelectorAll(
+            ".multiplayer-marker"
+        )
+        .forEach(
+            function(marker) {
+
+                marker.remove();
+
+            }
+        );
+
+    multiplayerGuesses = {};
+    roundRevealed = false;
+    revealInProgress = false;
+    scoreboard.innerHTML = "";
+    multiplayerStatus.textContent = "";
+
+    guessMarker.classList.toggle(
+        "multiplayer-own",
+        Boolean(gameCode)
+    );
+
     result.classList.add(
         "hidden"
     );
@@ -1131,6 +1183,329 @@ function startRound() {
             currentLocation.image;
 
     }
+
+}
+
+
+// ========================================
+// MULTIPLAYER ROUND HELPERS
+// ========================================
+
+function broadcastMultiplayerEvent(
+    event,
+    payload
+) {
+
+    if (!gameChannel) {
+        return;
+    }
+
+    gameChannel.send({
+        type: "broadcast",
+        event: event,
+        payload: payload
+    });
+
+}
+
+
+function createRemoteGuessMarker(
+    guess
+) {
+
+    const marker =
+        document.createElement(
+            "div"
+        );
+
+    marker.className =
+        "map-marker multiplayer-marker";
+
+    marker.title =
+        guess.name + "'s guess";
+
+    mapWrapper.appendChild(
+        marker
+    );
+
+    placeMarker(
+        marker,
+        guess.x,
+        guess.y
+    );
+
+}
+
+
+function renderMultiplayerGuesses() {
+
+    document
+        .querySelectorAll(
+            ".multiplayer-marker"
+        )
+        .forEach(
+            function(marker) {
+
+                marker.remove();
+
+            }
+        );
+
+    Object.values(
+        multiplayerGuesses
+    ).forEach(
+        function(guess) {
+
+            if (
+                guess.playerId !==
+                playerId
+            ) {
+
+                createRemoteGuessMarker(
+                    guess
+                );
+
+            }
+
+        }
+    );
+
+    guessMarker.style.display =
+        multiplayerGuesses[playerId]
+            ? "block"
+            : "none";
+
+}
+
+
+function renderScoreboard() {
+
+    scoreboard.innerHTML = "";
+
+    multiplayerPlayers
+        .map(
+            function(player) {
+
+                return {
+                    name: player.name,
+                    score:
+                        multiplayerScores[player.id] ||
+                        0
+                };
+
+            }
+        )
+        .sort(
+            function(a, b) {
+
+                return b.score - a.score;
+
+            }
+        )
+        .forEach(
+            function(player) {
+
+                const row =
+                    document.createElement(
+                        "div"
+                    );
+
+                row.className =
+                    "scoreboard-row";
+
+                const name =
+                    document.createElement(
+                        "span"
+                    );
+
+                name.textContent =
+                    player.name;
+
+                const score =
+                    document.createElement(
+                        "strong"
+                    );
+
+                score.textContent =
+                    player.score;
+
+                row.appendChild(
+                    name
+                );
+
+                row.appendChild(
+                    score
+                );
+
+                scoreboard.appendChild(
+                    row
+                );
+
+            }
+        );
+
+}
+
+
+function revealMultiplayerRound(
+    guesses
+) {
+
+    if (roundRevealed) {
+        return;
+    }
+
+    roundRevealed = true;
+    multiplayerGuesses = guesses;
+
+    Object.values(
+        guesses
+    ).forEach(
+        function(guess) {
+
+            multiplayerScores[guess.playerId] =
+                (
+                    multiplayerScores[guess.playerId] ||
+                    0
+                ) +
+                guess.points;
+
+        }
+    );
+
+    totalScore =
+        multiplayerScores[playerId] ||
+        0;
+
+    scoreText.textContent =
+        totalScore;
+
+    renderMultiplayerGuesses();
+
+    placeMarker(
+        correctMarker,
+        currentLocation.x,
+        currentLocation.y
+    );
+
+    correctMarker.style.display =
+        "block";
+
+    result.classList.remove(
+        "hidden"
+    );
+
+    resultTitle.textContent =
+        "Round complete!";
+
+    distanceText.textContent =
+        "Everyone has guessed.";
+
+    pointsText.textContent =
+        "Your points this round: +" +
+        guesses[playerId].points;
+
+    renderScoreboard();
+
+    guessButton.textContent =
+        currentRound >= TOTAL_ROUNDS
+            ? "See Final Score"
+            : "Next Round";
+
+    guessButton.disabled =
+        false;
+
+}
+
+
+async function tryRevealMultiplayerRound() {
+
+    if (
+        !isHost ||
+        roundRevealed ||
+        revealInProgress
+    ) {
+
+        return;
+
+    }
+
+    revealInProgress = true;
+
+    const {
+        data: players,
+        error
+    } =
+        await supabaseClient
+            .from("players")
+            .select("id, name")
+            .eq(
+                "game_id",
+                gameId
+            );
+
+    if (error) {
+
+        revealInProgress = false;
+        console.error(error);
+        return;
+
+    }
+
+    multiplayerPlayers =
+        players;
+
+    if (
+        players.length === 0 ||
+        Object.keys(multiplayerGuesses).length <
+            players.length
+    ) {
+
+        revealInProgress = false;
+        return;
+
+    }
+
+    const guesses =
+        Object.fromEntries(
+            Object.entries(
+                multiplayerGuesses
+            ).map(
+                function([id, guess]) {
+
+                    return [
+                        id,
+                        {
+                            ...guess,
+                            points:
+                                calculatePoints(
+                                    calculateDistance(
+                                        guess.x,
+                                        guess.y,
+                                        currentLocation.x,
+                                        currentLocation.y
+                                    )
+                                )
+                        }
+                    ];
+
+                }
+            )
+        );
+
+    broadcastMultiplayerEvent(
+        "round-revealed",
+        {
+            round: currentRound,
+            guesses: guesses
+        }
+    );
+
+    revealMultiplayerRound(
+        guesses
+    );
+
+    revealInProgress = false;
 
 }
 
@@ -1207,6 +1582,38 @@ guessButton.addEventListener(
             }
 
             guessMade = true;
+
+            if (gameCode) {
+
+                const multiplayerGuess = {
+                    playerId: playerId,
+                    name: currentPlayerName,
+                    x: playerGuess.x,
+                    y: playerGuess.y
+                };
+
+                multiplayerGuesses[playerId] =
+                    multiplayerGuess;
+
+                guessButton.disabled =
+                    true;
+
+                multiplayerStatus.textContent =
+                    "Guess submitted. Waiting for the other players...";
+
+                broadcastMultiplayerEvent(
+                    "guess-submitted",
+                    {
+                        round: currentRound,
+                        guess: multiplayerGuess
+                    }
+                );
+
+                tryRevealMultiplayerRound();
+
+                return;
+
+            }
 
 
             const distance =
@@ -1504,17 +1911,17 @@ function showFinalScore() {
             5000
         );
 
-    nextButton.textContent =
+    guessButton.textContent =
         "Play Again";
 
-    nextButton.onclick =
+    guessButton.onclick =
         function() {
 
             currentRound = 1;
 
             totalScore = 0;
 
-            nextButton.onclick =
+            guessButton.onclick =
                 null;
 
             startRound();
@@ -2058,6 +2465,9 @@ async function createGame() {
 
     }
 
+    currentPlayerName =
+        name;
+
 
     const code =
         generateGameCode();
@@ -2190,6 +2600,9 @@ async function joinGame() {
         return;
 
     }
+
+    currentPlayerName =
+        name;
 
 
     if (!code) {
@@ -2356,6 +2769,7 @@ function startMultiplayerGame() {
 
     currentRound = 1;
     totalScore = 0;
+    multiplayerScores = {};
 
     startRound();
 
@@ -2429,6 +2843,9 @@ async function updatePlayerList() {
 
     }
 
+    multiplayerPlayers =
+        players;
+
 
     const list =
         document.getElementById(
@@ -2500,6 +2917,67 @@ function listenForPlayers() {
                 function() {
 
                     updatePlayerList();
+
+                }
+            )
+
+            .on(
+                "broadcast",
+                {
+                    event: "guess-submitted"
+                },
+                function({ payload }) {
+
+                    if (
+                        payload.round !==
+                        currentRound
+                    ) {
+
+                        return;
+
+                    }
+
+                    multiplayerGuesses[
+                        payload.guess.playerId
+                    ] =
+                        payload.guess;
+
+                    renderMultiplayerGuesses();
+
+                    if (
+                        payload.guess.playerId !==
+                        playerId
+                    ) {
+
+                        multiplayerStatus.textContent =
+                            "A player has guessed. Waiting for everyone...";
+
+                    }
+
+                    tryRevealMultiplayerRound();
+
+                }
+            )
+
+            .on(
+                "broadcast",
+                {
+                    event: "round-revealed"
+                },
+                function({ payload }) {
+
+                    if (
+                        payload.round !==
+                        currentRound
+                    ) {
+
+                        return;
+
+                    }
+
+                    revealMultiplayerRound(
+                        payload.guesses
+                    );
 
                 }
             )
