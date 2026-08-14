@@ -523,7 +523,7 @@ let panX = 0;
 let panY = 0;
 
 const MIN_ZOOM = 0.5;
-const MAX_ZOOM = 15;
+const MAX_ZOOM = 40;
 const ZOOM_STEP = 1.2;
 
 
