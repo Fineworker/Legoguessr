@@ -8,7 +8,7 @@
 
 const debug = false;
 
-const APP_VERSION = "1.1.6";
+const APP_VERSION = "1.1.7";
 
 const TOTAL_ROUNDS = 5;
 
@@ -614,11 +614,6 @@ const scoreText =
 const result =
     document.getElementById(
         "result"
-    );
-
-const scoreboardToggle =
-    document.getElementById(
-        "scoreboard-toggle"
     );
 
 const resultTitle =
@@ -3336,25 +3331,12 @@ function toggleResultPanel(forceOpen) {
             : result.classList.contains("hidden");
 
     result.classList.toggle("hidden", !shouldOpen);
-    scoreboardToggle.setAttribute(
-        "aria-expanded",
-        String(shouldOpen)
-    );
 
     if (shouldOpen) {
         result.focus();
     }
 
 }
-
-scoreboardToggle.addEventListener(
-    "click",
-    function() {
-
-        toggleResultPanel();
-
-    }
-);
 
 
 document.addEventListener(
