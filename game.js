@@ -999,14 +999,14 @@ function getMapPosition(event) {
             mapX /
             mapWidth
         ) *
-        100;
+        1000;
 
     const y =
         (
             mapY /
             mapHeight
         ) *
-        100;
+        1000;
 
     if (
         x < 0 ||
@@ -1023,12 +1023,12 @@ function getMapPosition(event) {
 
         x:
             Number(
-                x.toFixed(7)
+                x.toFixed(6)
             ),
 
         y:
             Number(
-                y.toFixed(7)
+                y.toFixed(6)
             )
 
     };
