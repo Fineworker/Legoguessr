@@ -735,20 +735,27 @@ button:disabled {
 .result {
 
     position: fixed;
-    left: 18px;
-    top: 110px;
+    inset: 0;
     z-index: 1000;
-    width: min(360px, calc(100vw - 36px));
-    max-height: calc(100vh - 130px);
-    overflow-y: auto;
-    margin-top: 0;
-    padding: 20px 18px 16px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 80px 20px 20px;
     text-align: center;
-    background: rgba(22, 22, 22, 0.98);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 12px;
-    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.45);
+    background: rgba(0, 0, 0, 0.28);
+    backdrop-filter: blur(2px);
+    overflow-y: auto;
 
+}
+
+
+.result > * {
+    width: min(420px, calc(100vw - 40px));
+    background: rgba(24, 24, 24, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    padding: 18px 20px 14px;
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.3);
 }
 
 
@@ -764,19 +771,20 @@ button:disabled {
     top: 92px;
     z-index: 1100;
     width: auto;
-    min-width: 150px;
+    min-width: 120px;
     margin: 0;
-    padding: 10px 16px;
-    border-radius: 10px;
-    background: #f1c40f;
-    color: #111;
-    font-size: 15px;
+    padding: 9px 14px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    color: white;
+    font-size: 14px;
     font-weight: 700;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
 }
 
 .scoreboard-toggle:hover {
-    background: #f39c12;
+    background: rgba(255, 255, 255, 0.18);
 }
 
 .hidden {
