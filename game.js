@@ -2586,6 +2586,50 @@ async function fetchPublicWaitingGames() {
 
 }
 
+async function getLobbyHostName(gameIdValue) {
+
+    try {
+
+        const {
+            data: players,
+            error
+        } =
+            await supabaseClient
+                .from("players")
+                .select("name")
+                .eq(
+                    "game_id",
+                    gameIdValue
+                )
+                .order(
+                    "created_at",
+                    {
+                        ascending: true
+                    }
+                )
+                .limit(1);
+
+        if (error) {
+            throw error;
+        }
+
+        return players && players.length > 0
+            ? players[0].name
+            : "Host";
+
+    } catch (error) {
+
+        console.error(
+            "HOST NAME ERROR:",
+            error
+        );
+
+        return "Host";
+
+    }
+
+}
+
 // ========================================
 // CREATE GAME
 // ========================================
@@ -2944,7 +2988,26 @@ async function refreshPublicLobbies() {
 
         }
 
-        games.forEach(
+        const gamesWithHostNames =
+            await Promise.all(
+                games.map(
+                    async function(game) {
+
+                        const hostName =
+                            await getLobbyHostName(
+                                game.id
+                            );
+
+                        return {
+                            ...game,
+                            hostName
+                        };
+
+                    }
+                )
+            );
+
+        gamesWithHostNames.forEach(
             function(game) {
 
                 const button =
@@ -2954,7 +3017,10 @@ async function refreshPublicLobbies() {
                 button.className = "public-lobby-item";
                 button.textContent =
                     game.code +
-                    " · Join";
+                    " · Join" +
+                    (game.hostName
+                        ? " — " + game.hostName
+                        : "");
                 button.dataset.code =
                     game.code;
 
