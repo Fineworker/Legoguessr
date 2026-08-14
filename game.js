@@ -829,16 +829,6 @@ mapView.addEventListener(
     "mousedown",
     function(event) {
 
-        if (
-            !result.classList.contains(
-                "hidden"
-            )
-        ) {
-
-            return;
-
-        }
-
         dragging = true;
         mouseMoved = false;
 
