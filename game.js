@@ -8,7 +8,7 @@
 
 const debug = false;
 
-const APP_VERSION = "1.1.1";
+const APP_VERSION = "1.1.3";
 
 const TOTAL_ROUNDS = 5;
 
@@ -38,6 +38,7 @@ let currentPlayerName = "Player";
 let multiplayerPlayers = [];
 let multiplayerGuesses = {};
 let multiplayerScores = {};
+let multiplayerLastGuessPoints = {};
 let roundRevealed = false;
 let revealInProgress = false;
 
@@ -1020,14 +1021,14 @@ function getMapPosition(event) {
     return {
 
         x:
-            Math.round(
-                x * 100
-            ) / 100,
+            Number(
+                x.toFixed(4)
+            ),
 
         y:
-            Math.round(
-                y * 100
-            ) / 100
+            Number(
+                y.toFixed(4)
+            )
 
     };
 }
@@ -1149,6 +1150,7 @@ function startRound() {
         );
 
     multiplayerGuesses = {};
+    multiplayerLastGuessPoints = {};
     roundRevealed = false;
     revealInProgress = false;
     scoreboard.innerHTML = "";
@@ -1296,7 +1298,14 @@ function renderScoreboard() {
                     name: player.name,
                     score:
                         multiplayerScores[player.id] ||
-                        0
+                        0,
+                    lastGuess:
+                        Object.prototype.hasOwnProperty.call(
+                            multiplayerLastGuessPoints,
+                            player.id
+                        )
+                            ? multiplayerLastGuessPoints[player.id]
+                            : null
                 };
 
             }
@@ -1319,6 +1328,14 @@ function renderScoreboard() {
                 row.className =
                     "scoreboard-row";
 
+                const nameBlock =
+                    document.createElement(
+                        "div"
+                    );
+
+                nameBlock.className =
+                    "scoreboard-name";
+
                 const name =
                     document.createElement(
                         "span"
@@ -1326,6 +1343,28 @@ function renderScoreboard() {
 
                 name.textContent =
                     player.name;
+
+                const lastGuess =
+                    document.createElement(
+                        "small"
+                    );
+
+                lastGuess.className =
+                    "scoreboard-last-guess";
+
+                lastGuess.textContent =
+                    player.lastGuess === null
+                        ? "No guess yet"
+                        : "Last guess: +" +
+                            player.lastGuess;
+
+                nameBlock.appendChild(
+                    name
+                );
+
+                nameBlock.appendChild(
+                    lastGuess
+                );
 
                 const score =
                     document.createElement(
@@ -1336,7 +1375,7 @@ function renderScoreboard() {
                     player.score;
 
                 row.appendChild(
-                    name
+                    nameBlock
                 );
 
                 row.appendChild(
@@ -1374,6 +1413,9 @@ function revealMultiplayerRound(
                     multiplayerScores[guess.playerId] ||
                     0
                 ) +
+                guess.points;
+
+            multiplayerLastGuessPoints[guess.playerId] =
                 guess.points;
 
         }
@@ -3279,6 +3321,44 @@ window.addEventListener(
 
     }
 );
+
+
+document.addEventListener(
+    "keydown",
+    function(event) {
+
+        const activeTag =
+            document.activeElement &&
+            document.activeElement.tagName;
+
+        const isTyping =
+            activeTag === "INPUT" ||
+            activeTag === "TEXTAREA" ||
+            document.activeElement?.isContentEditable;
+
+        if (
+            event.key === "Tab" &&
+            !isTyping
+        ) {
+
+            if (result.classList.contains("hidden")) {
+
+                result.classList.remove("hidden");
+                result.focus();
+
+            } else {
+
+                result.classList.add("hidden");
+
+            }
+
+            event.preventDefault();
+        }
+
+    }
+);
+
+result.setAttribute("tabindex", "-1");
 
 
 // ========================================
