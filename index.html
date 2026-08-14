@@ -26,7 +26,7 @@
 
     <div class="title-wrap">
         <h1>🧱 LEGOGuessr</h1>
-        <div class="version-tag">v1.1.9</div>
+        <div class="version-tag">v1.2.0</div>
     </div>
 
     <div class="header-actions">
@@ -88,6 +88,23 @@
                     maxlength="20"
                 >
 
+                <div class="visibility-switch">
+                    <button
+                        type="button"
+                        class="visibility-option active"
+                        data-visibility="public"
+                    >
+                        Public
+                    </button>
+                    <button
+                        type="button"
+                        class="visibility-option"
+                        data-visibility="private"
+                    >
+                        Private
+                    </button>
+                </div>
+
                 <button id="createGame">
                     Create Lobby
                 </button>
@@ -111,6 +128,17 @@
                     placeholder="Room code"
                     maxlength="6"
                 >
+
+                <div class="public-lobby-list-wrap">
+                    <div class="public-lobby-list-header">
+                        Public lobbies
+                    </div>
+                    <div id="publicLobbyList" class="public-lobby-list">
+                        <div class="public-lobby-empty">
+                            Loading public lobbies...
+                        </div>
+                    </div>
+                </div>
 
                 <button id="joinGame">
                     Join Lobby

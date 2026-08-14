@@ -8,7 +8,7 @@
 
 const debug = false;
 
-const APP_VERSION = "1.1.8";
+const APP_VERSION = "1.2.0";
 
 const TOTAL_ROUNDS = 5;
 
@@ -41,6 +41,7 @@ let multiplayerScores = {};
 let multiplayerLastGuessPoints = {};
 let roundRevealed = false;
 let revealInProgress = false;
+let selectedLobbyVisibility = "public";
 
 
 // ========================================
@@ -2542,6 +2543,11 @@ async function createGame() {
     currentPlayerName =
         selectedName;
 
+    const visibility =
+        selectedLobbyVisibility ===
+        "private"
+            ? "private"
+            : "public";
 
     const code =
         generateGameCode();
@@ -2561,7 +2567,10 @@ async function createGame() {
             .insert({
 
                 code:
-                    code
+                    code,
+                is_public:
+                    visibility ===
+                    "public"
 
             })
             .select()
@@ -2644,7 +2653,7 @@ async function createGame() {
 // JOIN GAME
 // ========================================
 
-async function joinGame() {
+async function joinGame(codeOverride = null) {
 
     const name =
         document
@@ -2666,14 +2675,16 @@ async function joinGame() {
         name || createName;
 
     const code =
-        document
-            .getElementById(
-                "gameCode"
-            )
-            .value
-            .trim()
-            .toUpperCase();
-
+        (
+            codeOverride ||
+            document
+                .getElementById(
+                    "gameCode"
+                )
+                .value
+                .trim()
+                .toUpperCase()
+        );
 
     if (!selectedName) {
 
@@ -2704,7 +2715,7 @@ async function joinGame() {
     if (!code) {
 
         alert(
-            "Enter a game code."
+            "Enter a game code or choose a public lobby."
         );
 
         return;
@@ -2815,6 +2826,99 @@ async function joinGame() {
 
 }
 
+
+async function refreshPublicLobbies() {
+
+    const publicLobbyList =
+        document.getElementById(
+            "publicLobbyList"
+        );
+
+    if (!publicLobbyList) {
+        return;
+    }
+
+    try {
+
+        const {
+            data: games,
+            error
+        } =
+            await supabaseClient
+                .from("games")
+                .select("code, id, status")
+                .eq(
+                    "is_public",
+                    true
+                )
+                .eq(
+                    "status",
+                    "waiting"
+                )
+                .limit(20);
+
+        if (error) {
+            throw error;
+        }
+
+        publicLobbyList.innerHTML = "";
+
+        if (!games || games.length === 0) {
+
+            publicLobbyList.innerHTML =
+                '<div class="public-lobby-empty">No public lobbies right now.</div>';
+            return;
+
+        }
+
+        games.forEach(
+            function(game) {
+
+                const button =
+                    document.createElement("button");
+
+                button.type = "button";
+                button.className = "public-lobby-item";
+                button.textContent =
+                    game.code +
+                    " · Join";
+                button.dataset.code =
+                    game.code;
+
+                button.addEventListener(
+                    "click",
+                    function() {
+
+                        document.getElementById(
+                            "gameCode"
+                        ).value =
+                            game.code;
+                        joinGame(game.code);
+
+                    }
+                );
+
+                publicLobbyList.appendChild(
+                    button
+                );
+
+            }
+        );
+
+    } catch (error) {
+
+        console.error(
+            "PUBLIC LOBBIES ERROR:",
+            error
+        );
+
+        publicLobbyList.innerHTML =
+            '<div class="public-lobby-empty">Public lobbies unavailable.</div>';
+
+    }
+
+}
+
 // ========================================
 // LOBBY MENU BUTTON
 // ========================================
@@ -2833,6 +2937,11 @@ const lobbyModeButtons =
         ".mode-option"
     );
 
+const visibilityOptions =
+    document.querySelectorAll(
+        ".visibility-option"
+    );
+
 const lobbyCreatePanel =
     document.getElementById(
         "lobby-create-panel"
@@ -2842,6 +2951,28 @@ const lobbyJoinPanel =
     document.getElementById(
         "lobby-join-panel"
     );
+
+function setLobbyVisibility(visibility) {
+
+    selectedLobbyVisibility =
+        visibility;
+
+    visibilityOptions.forEach(
+        function(button) {
+
+            const active =
+                button.dataset.visibility ===
+                visibility;
+
+            button.classList.toggle(
+                "active",
+                active
+            );
+
+        }
+    );
+
+}
 
 function setLobbyMode(mode) {
 
@@ -2884,6 +3015,7 @@ lobbyButton.addEventListener(
 
         lobbyMenu.style.display = "flex";
         setLobbyMode("create");
+        refreshPublicLobbies();
 
     }
 );
@@ -2911,11 +3043,36 @@ lobbyModeButtons.forEach(
                     button.dataset.mode
                 );
 
+                if (
+                    button.dataset.mode ===
+                    "join"
+                ) {
+                    refreshPublicLobbies();
+                }
+
             }
         );
 
     }
 );
+
+visibilityOptions.forEach(
+    function(button) {
+
+        button.addEventListener(
+            "click",
+            function() {
+
+                setLobbyVisibility(
+                    button.dataset.visibility
+                );
+
+            }
+        );
+
+    }
+);
+
 // ========================================
 // START MULTIPLAYER GAME
 // ========================================
