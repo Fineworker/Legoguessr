@@ -42,6 +42,8 @@ header {
 
     align-items: center;
 
+    gap: 20px;
+
 }
 
 
@@ -66,6 +68,12 @@ header h1 {
     letter-spacing: 0.08em;
     color: #d0d0d0;
     opacity: 0.9;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 18px;
 }
 
 .stats {
@@ -322,16 +330,11 @@ main {
 }
 
 .lobby-button {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-
-    z-index: 1000;
-
+    position: relative;
     padding: 12px 20px;
 
-    background: #222;
-    color: white;
+    background: #f1c40f;
+    color: #111;
 
     border: none;
     border-radius: 8px;
@@ -340,10 +343,11 @@ main {
     font-weight: bold;
 
     cursor: pointer;
+    min-width: 150px;
 }
 
 .lobby-button:hover {
-    background: #333;
+    background: #f39c12;
 }
 
 .lobby-menu,
@@ -362,13 +366,13 @@ main {
 }
 
 .lobby-box {
-    width: 320px;
+    width: 360px;
 
-    padding: 30px;
+    padding: 28px 24px;
 
     background: white;
     color: #222;
-    border-radius: 12px;
+    border-radius: 14px;
 
     text-align: center;
 
@@ -377,6 +381,42 @@ main {
 
 .lobby-box h2 {
     margin-top: 0;
+    margin-bottom: 18px;
+}
+
+.lobby-mode-switch {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 18px;
+}
+
+.mode-option {
+    width: 100%;
+    margin: 0;
+    padding: 12px 10px;
+    border-radius: 8px;
+    background: #eaeaea;
+    color: #333;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.mode-option.active {
+    background: #222;
+    color: white;
+}
+
+.lobby-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.lobby-helper {
+    margin: 0 0 8px;
+    color: #666;
+    font-size: 14px;
 }
 
 .lobby-box input {
@@ -386,7 +426,7 @@ main {
 
     padding: 12px;
 
-    margin-bottom: 10px;
+    margin-bottom: 6px;
 
     border: 1px solid #ccc;
 
@@ -419,17 +459,13 @@ main {
     background: #444;
 }
 
-.lobby-divider {
-    margin: 15px 0;
-
-    color: #777;
-
-    font-size: 13px;
-}
-
 .close-lobby {
     background: #888 !important;
-    margin-top: 15px !important;
+    margin-top: 18px !important;
+}
+
+.hidden {
+    display: none;
 }
 
 #displayGameCode {

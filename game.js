@@ -2460,8 +2460,18 @@ async function createGame() {
             .value
             .trim();
 
+    const nameForJoin =
+        document
+            .getElementById(
+                "playerNameJoin"
+            )
+            .value
+            .trim();
 
-    if (!name) {
+    const selectedName =
+        name || nameForJoin;
+
+    if (!selectedName) {
 
         alert(
             "Enter your name first."
@@ -2471,8 +2481,20 @@ async function createGame() {
 
     }
 
+    document
+        .getElementById(
+            "playerName"
+        )
+        .value = selectedName;
+
+    document
+        .getElementById(
+            "playerNameJoin"
+        )
+        .value = selectedName;
+
     currentPlayerName =
-        name;
+        selectedName;
 
 
     const code =
@@ -2536,7 +2558,7 @@ async function createGame() {
                     gameId,
 
                 name:
-                    name
+                    currentPlayerName
 
             })
             .select()
@@ -2581,11 +2603,21 @@ async function joinGame() {
     const name =
         document
             .getElementById(
+                "playerNameJoin"
+            )
+            .value
+            .trim();
+
+    const createName =
+        document
+            .getElementById(
                 "playerName"
             )
             .value
             .trim();
 
+    const selectedName =
+        name || createName;
 
     const code =
         document
@@ -2597,7 +2629,7 @@ async function joinGame() {
             .toUpperCase();
 
 
-    if (!name) {
+    if (!selectedName) {
 
         alert(
             "Enter your name first."
@@ -2607,8 +2639,20 @@ async function joinGame() {
 
     }
 
+    document
+        .getElementById(
+            "playerName"
+        )
+        .value = selectedName;
+
+    document
+        .getElementById(
+            "playerNameJoin"
+        )
+        .value = selectedName;
+
     currentPlayerName =
-        name;
+        selectedName;
 
 
     if (!code) {
@@ -2690,7 +2734,7 @@ async function joinGame() {
                     gameId,
 
                 name:
-                    name
+                    currentPlayerName
 
             })
             .select()
@@ -2738,6 +2782,53 @@ const lobbyMenu =
 const closeLobby =
     document.getElementById("closeLobby");
 
+const lobbyModeButtons =
+    document.querySelectorAll(
+        ".mode-option"
+    );
+
+const lobbyCreatePanel =
+    document.getElementById(
+        "lobby-create-panel"
+    );
+
+const lobbyJoinPanel =
+    document.getElementById(
+        "lobby-join-panel"
+    );
+
+function setLobbyMode(mode) {
+
+    const isCreate =
+        mode === "create";
+
+    lobbyCreatePanel.classList.toggle(
+        "hidden",
+        !isCreate
+    );
+
+    lobbyJoinPanel.classList.toggle(
+        "hidden",
+        isCreate
+    );
+
+    lobbyModeButtons.forEach(
+        function(button) {
+
+            const active =
+                button.dataset.mode ===
+                mode;
+
+            button.classList.toggle(
+                "active",
+                active
+            );
+
+        }
+    );
+
+}
+
 
 // Open lobby menu
 
@@ -2746,6 +2837,7 @@ lobbyButton.addEventListener(
     function() {
 
         lobbyMenu.style.display = "flex";
+        setLobbyMode("create");
 
     }
 );
@@ -2758,6 +2850,23 @@ closeLobby.addEventListener(
     function() {
 
         lobbyMenu.style.display = "none";
+
+    }
+);
+
+lobbyModeButtons.forEach(
+    function(button) {
+
+        button.addEventListener(
+            "click",
+            function() {
+
+                setLobbyMode(
+                    button.dataset.mode
+                );
+
+            }
+        );
 
     }
 );

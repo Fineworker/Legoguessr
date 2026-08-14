@@ -29,17 +29,25 @@
         <div class="version-tag">v1.1.0</div>
     </div>
 
-    <div class="stats">
+    <div class="header-actions">
 
-        <span>
-            Round:
-            <b id="round">1</b>/5
-        </span>
+        <div class="stats">
 
-        <span>
-            Score:
-            <b id="score">0</b>
-        </span>
+            <span>
+                Round:
+                <b id="round">1</b>/5
+            </span>
+
+            <span>
+                Score:
+                <b id="score">0</b>
+            </span>
+
+        </div>
+
+        <button id="lobby-button" class="lobby-button">
+            Multiplayer
+        </button>
 
     </div>
 
@@ -48,37 +56,67 @@
 
 <main>
 
-    <button id="lobby-button" class="lobby-button">
-    Multiplayer
-    </button>
-
     <div id="lobby-menu" class="lobby-menu" style="display: none;">
         <div class="lobby-box">
             <h2>Multiplayer</h2>
 
-            <input
-                id="playerName"
-                type="text"
-                placeholder="Your name"
-                maxlength="20"
-            >
+            <div class="lobby-mode-switch">
+                <button
+                    type="button"
+                    class="mode-option active"
+                    data-mode="create"
+                >
+                    Create
+                </button>
+                <button
+                    type="button"
+                    class="mode-option"
+                    data-mode="join"
+                >
+                    Join
+                </button>
+            </div>
 
-            <button id="createGame">
-                Create Lobby
-            </button>
+            <div id="lobby-create-panel" class="lobby-panel">
+                <p class="lobby-helper">
+                    Start a new lobby and invite friends.
+                </p>
 
-            <div class="lobby-divider">OR</div>
+                <input
+                    id="playerName"
+                    type="text"
+                    placeholder="Your name"
+                    maxlength="20"
+                >
 
-            <input
-                id="gameCode"
-                type="text"
-                placeholder="Room code"
-                maxlength="6"
-            >
+                <button id="createGame">
+                    Create Lobby
+                </button>
+            </div>
 
-            <button id="joinGame">
-                Join Lobby
-            </button>
+            <div id="lobby-join-panel" class="lobby-panel hidden">
+                <p class="lobby-helper">
+                    Enter your name and the room code.
+                </p>
+
+                <input
+                    id="playerNameJoin"
+                    type="text"
+                    placeholder="Your name"
+                    maxlength="20"
+                >
+
+                <input
+                    id="gameCode"
+                    type="text"
+                    placeholder="Room code"
+                    maxlength="6"
+                >
+
+                <button id="joinGame">
+                    Join Lobby
+                </button>
+            </div>
 
             <button id="closeLobby" class="close-lobby">
                 Cancel
