@@ -8,6 +8,8 @@
 
 const debug = false;
 
+const APP_VERSION = "1.1.1";
+
 const TOTAL_ROUNDS = 5;
 
 const SUPABASE_URL =
@@ -3002,10 +3004,61 @@ async function updatePlayerList() {
 
 
 // ========================================
+// RECONNECT MULTIPLAYER CHANNEL
+// ========================================
+
+function reconnectMultiplayerChannel() {
+
+    if (!gameId) {
+        return;
+    }
+
+    if (
+        gameChannel &&
+        gameChannel.state === "joined"
+    ) {
+        return;
+    }
+
+    if (gameChannel) {
+        try {
+            gameChannel.unsubscribe();
+        } catch (error) {
+            console.warn(
+                "Could not unsubscribe from stale game channel:",
+                error
+            );
+        }
+    }
+
+    listenForPlayers();
+
+}
+
+
+// ========================================
 // LISTEN FOR PLAYERS
 // ========================================
 
 function listenForPlayers() {
+
+    if (
+        gameChannel &&
+        gameChannel.state === "joined"
+    ) {
+        return;
+    }
+
+    if (gameChannel) {
+        try {
+            gameChannel.unsubscribe();
+        } catch (error) {
+            console.warn(
+                "Could not reset game channel:",
+                error
+            );
+        }
+    }
 
     updatePlayerList();
 
@@ -3203,6 +3256,29 @@ document
         "click",
         startGame
     );
+
+
+document.addEventListener(
+    "visibilitychange",
+    function() {
+
+        if (
+            document.visibilityState === "visible"
+        ) {
+            reconnectMultiplayerChannel();
+        }
+
+    }
+);
+
+window.addEventListener(
+    "focus",
+    function() {
+
+        reconnectMultiplayerChannel();
+
+    }
+);
 
 
 // ========================================
