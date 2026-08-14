@@ -2493,6 +2493,99 @@ function generateGameCode() {
 }
 
 
+async function createGameRecord(code, visibility) {
+
+    try {
+
+        const result =
+            await supabaseClient
+                .from("games")
+                .insert({
+                    code: code,
+                    is_public: visibility === "public"
+                })
+                .select()
+                .single();
+
+        return result;
+
+    } catch (error) {
+
+        const message =
+            String(
+                error?.message ||
+                error ||
+                ""
+            );
+
+        if (
+            message.includes(
+                "is_public"
+            ) ||
+            message.includes(
+                "column"
+            )
+        ) {
+
+            return supabaseClient
+                .from("games")
+                .insert({
+                    code: code
+                })
+                .select()
+                .single();
+
+        }
+
+        throw error;
+
+    }
+
+}
+
+async function fetchPublicWaitingGames() {
+
+    try {
+
+        return await supabaseClient
+            .from("games")
+            .select("code, id, status")
+            .eq("is_public", true)
+            .eq("status", "waiting")
+            .limit(20);
+
+    } catch (error) {
+
+        const message =
+            String(
+                error?.message ||
+                error ||
+                ""
+            );
+
+        if (
+            message.includes(
+                "is_public"
+            ) ||
+            message.includes(
+                "column"
+            )
+        ) {
+
+            return supabaseClient
+                .from("games")
+                .select("code, id, status")
+                .eq("status", "waiting")
+                .limit(20);
+
+        }
+
+        throw error;
+
+    }
+
+}
+
 // ========================================
 // CREATE GAME
 // ========================================
@@ -2562,19 +2655,10 @@ async function createGame() {
         data: game,
         error
     } =
-        await supabaseClient
-            .from("games")
-            .insert({
-
-                code:
-                    code,
-                is_public:
-                    visibility ===
-                    "public"
-
-            })
-            .select()
-            .single();
+        await createGameRecord(
+            code,
+            visibility
+        );
 
 
     if (error) {
@@ -2844,18 +2928,7 @@ async function refreshPublicLobbies() {
             data: games,
             error
         } =
-            await supabaseClient
-                .from("games")
-                .select("code, id, status")
-                .eq(
-                    "is_public",
-                    true
-                )
-                .eq(
-                    "status",
-                    "waiting"
-                )
-                .limit(20);
+            await fetchPublicWaitingGames();
 
         if (error) {
             throw error;
