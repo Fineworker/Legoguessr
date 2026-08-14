@@ -296,7 +296,7 @@ const locations = [
     },
 
     {
-        image: "images/LEGO CITY UNDERCOVER_202608092310007.jpg",
+        image: "images/LEGO CITY UNDERCOVER_20260809231007.jpg",
         x: 18.82,
         y: 35.87
     },
@@ -929,14 +929,14 @@ function placeMarker(
     const x =
         (
             xPercent /
-            1000
+            100
         ) *
         map.offsetWidth;
 
     const y =
         (
             yPercent /
-            1000
+            100
         ) *
         map.offsetHeight;
 
@@ -998,20 +998,20 @@ function getMapPosition(event) {
             mapX /
             mapWidth
         ) *
-        1000;
+        100;
 
     const y =
         (
             mapY /
             mapHeight
         ) *
-        1000;
+        100;
 
     if (
         x < 0 ||
-        x > 1000 ||
+        x > 100 ||
         y < 0 ||
-        y > 1000
+        y > 100
     ) {
 
         return null;
@@ -1022,12 +1022,12 @@ function getMapPosition(event) {
 
         x:
             Number(
-                x.toFixed(6)
+                x.toFixed(7)
             ),
 
         y:
             Number(
-                y.toFixed(6)
+                y.toFixed(7)
             )
 
     };
@@ -1066,7 +1066,7 @@ function seededRandom(seed) {
 
     const x =
         Math.sin(seed) *
-        100000;
+        10000;
 
     return x -
         Math.floor(x);
@@ -1092,7 +1092,7 @@ function getLocationForRound() {
 
     const seed =
         stringToSeed(gameCode) +
-        currentRound * 10000;
+        currentRound * 1000;
 
     const random =
         seededRandom(seed);
@@ -1871,28 +1871,28 @@ function drawLine(
     const startX =
         (
             x1 /
-            1000
+            100
         ) *
         mapWidth;
 
     const startY =
         (
             y1 /
-            1000
+            100
         ) *
         mapHeight;
 
     const endX =
         (
             x2 /
-            1000
+            100
         ) *
         mapWidth;
 
     const endY =
         (
             y2 /
-            1000
+            100
         ) *
         mapHeight;
 
@@ -3391,19 +3391,19 @@ function createMultiplayerGuessLine(
         map.offsetHeight;
 
     const startX =
-        (guess.x / 1000) *
+        (guess.x / 100) *
         mapWidth;
 
     const startY =
-        (guess.y / 1000) *
+        (guess.y / 100) *
         mapHeight;
 
     const endX =
-        (currentLocation.x / 1000) *
+        (currentLocation.x / 100) *
         mapWidth;
 
     const endY =
-        (currentLocation.y / 1000) *
+        (currentLocation.y / 100) *
         mapHeight;
 
     const deltaX =
