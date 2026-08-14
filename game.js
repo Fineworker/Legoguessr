@@ -8,7 +8,7 @@
 
 const debug = false;
 
-const APP_VERSION = "1.1.3";
+const APP_VERSION = "1.1.4";
 
 const TOTAL_ROUNDS = 5;
 
@@ -524,7 +524,7 @@ let panY = 0;
 
 const MIN_ZOOM = 0.5;
 const MAX_ZOOM = 15;
-const ZOOM_STEP = 0.25;
+const ZOOM_STEP = 1.2;
 
 
 // ========================================
@@ -716,7 +716,7 @@ zoomInButton.addEventListener(
         zoom =
             Math.min(
                 MAX_ZOOM,
-                zoom + ZOOM_STEP
+                zoom * ZOOM_STEP
             );
 
         updateCamera();
@@ -732,7 +732,7 @@ zoomOutButton.addEventListener(
         zoom =
             Math.max(
                 MIN_ZOOM,
-                zoom - ZOOM_STEP
+                zoom / ZOOM_STEP
             );
 
         updateCamera();
@@ -769,7 +769,7 @@ mapView.addEventListener(
             zoom =
                 Math.min(
                     MAX_ZOOM,
-                    zoom + ZOOM_STEP
+                    zoom * ZOOM_STEP
                 );
 
         } else {
@@ -777,7 +777,7 @@ mapView.addEventListener(
             zoom =
                 Math.max(
                     MIN_ZOOM,
-                    zoom - ZOOM_STEP
+                    zoom / ZOOM_STEP
                 );
 
         }
@@ -1022,12 +1022,12 @@ function getMapPosition(event) {
 
         x:
             Number(
-                x.toFixed(4)
+                x.toFixed(6)
             ),
 
         y:
             Number(
-                y.toFixed(4)
+                y.toFixed(6)
             )
 
     };
