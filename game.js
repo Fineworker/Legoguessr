@@ -8,7 +8,7 @@
 
 const debug = false;
 
-const APP_VERSION = "1.1.7";
+const APP_VERSION = "1.1.8";
 
 const TOTAL_ROUNDS = 5;
 
@@ -296,7 +296,7 @@ const locations = [
     },
 
     {
-        image: "images/LEGO CITY UNDERCOVER_20260809231007.jpg",
+        image: "images/LEGO CITY UNDERCOVER_202608092310007.jpg",
         x: 18.82,
         y: 35.87
     },
@@ -929,14 +929,14 @@ function placeMarker(
     const x =
         (
             xPercent /
-            100
+            1000
         ) *
         map.offsetWidth;
 
     const y =
         (
             yPercent /
-            100
+            1000
         ) *
         map.offsetHeight;
 
@@ -998,20 +998,20 @@ function getMapPosition(event) {
             mapX /
             mapWidth
         ) *
-        100;
+        1000;
 
     const y =
         (
             mapY /
             mapHeight
         ) *
-        100;
+        1000;
 
     if (
         x < 0 ||
-        x > 100 ||
+        x > 1000 ||
         y < 0 ||
-        y > 100
+        y > 1000
     ) {
 
         return null;
@@ -1066,7 +1066,7 @@ function seededRandom(seed) {
 
     const x =
         Math.sin(seed) *
-        10000;
+        100000;
 
     return x -
         Math.floor(x);
@@ -1092,7 +1092,7 @@ function getLocationForRound() {
 
     const seed =
         stringToSeed(gameCode) +
-        currentRound * 1000;
+        currentRound * 10000;
 
     const random =
         seededRandom(seed);
@@ -1150,11 +1150,13 @@ function startRound() {
         );
 
     multiplayerGuesses = {};
-    multiplayerLastGuessPoints = {};
     roundRevealed = false;
     revealInProgress = false;
-    scoreboard.innerHTML = "";
     multiplayerStatus.textContent = "";
+
+    if (multiplayerPlayers.length > 0) {
+        renderScoreboard();
+    }
 
     guessMarker.classList.toggle(
         "multiplayer-own",
@@ -1869,28 +1871,28 @@ function drawLine(
     const startX =
         (
             x1 /
-            100
+            1000
         ) *
         mapWidth;
 
     const startY =
         (
             y1 /
-            100
+            1000
         ) *
         mapHeight;
 
     const endX =
         (
             x2 /
-            100
+            1000
         ) *
         mapWidth;
 
     const endY =
         (
             y2 /
-            100
+            1000
         ) *
         mapHeight;
 
