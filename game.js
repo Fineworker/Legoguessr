@@ -8,7 +8,7 @@
 
 const debug = false;
 
-const APP_VERSION = "1.1.4";
+const APP_VERSION = "1.1.5";
 
 const TOTAL_ROUNDS = 5;
 
@@ -614,6 +614,11 @@ const scoreText =
 const result =
     document.getElementById(
         "result"
+    );
+
+const scoreboardToggle =
+    document.getElementById(
+        "scoreboard-toggle"
     );
 
 const resultTitle =
@@ -3323,6 +3328,35 @@ window.addEventListener(
 );
 
 
+function toggleResultPanel(forceOpen) {
+
+    const shouldOpen =
+        typeof forceOpen === "boolean"
+            ? forceOpen
+            : result.classList.contains("hidden");
+
+    result.classList.toggle("hidden", !shouldOpen);
+    scoreboardToggle.setAttribute(
+        "aria-expanded",
+        String(shouldOpen)
+    );
+
+    if (shouldOpen) {
+        result.focus();
+    }
+
+}
+
+scoreboardToggle.addEventListener(
+    "click",
+    function() {
+
+        toggleResultPanel();
+
+    }
+);
+
+
 document.addEventListener(
     "keydown",
     function(event) {
@@ -3341,17 +3375,7 @@ document.addEventListener(
             !isTyping
         ) {
 
-            if (result.classList.contains("hidden")) {
-
-                result.classList.remove("hidden");
-                result.focus();
-
-            } else {
-
-                result.classList.add("hidden");
-
-            }
-
+            toggleResultPanel();
             event.preventDefault();
         }
 
@@ -3383,19 +3407,19 @@ function createMultiplayerGuessLine(
         map.offsetHeight;
 
     const startX =
-        (guess.x / 100) *
+        (guess.x / 1000) *
         mapWidth;
 
     const startY =
-        (guess.y / 100) *
+        (guess.y / 1000) *
         mapHeight;
 
     const endX =
-        (currentLocation.x / 100) *
+        (currentLocation.x / 1000) *
         mapWidth;
 
     const endY =
-        (currentLocation.y / 100) *
+        (currentLocation.y / 1000) *
         mapHeight;
 
     const deltaX =
