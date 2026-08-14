@@ -3272,6 +3272,75 @@ function showWaitingRoom(
 // UPDATE PLAYER LIST
 // ========================================
 
+async function closeEmptyLobby() {
+
+    if (!gameId) {
+        return;
+    }
+
+    try {
+
+        const {
+            error
+        } =
+            await supabaseClient
+                .from("games")
+                .delete()
+                .eq(
+                    "id",
+                    gameId
+                );
+
+        if (error) {
+            throw error;
+        }
+
+    } catch (error) {
+
+        console.warn(
+            "Could not close empty lobby:",
+            error
+        );
+
+        return;
+
+    }
+
+    if (gameChannel) {
+        try {
+            gameChannel.unsubscribe();
+        } catch (error) {
+            console.warn(
+                "Could not unsubscribe from closed lobby:",
+                error
+            );
+        }
+    }
+
+    gameChannel = null;
+    gameId = null;
+    playerId = null;
+    isHost = false;
+    gameCode = null;
+    multiplayerPlayers = [];
+    multiplayerGuesses = {};
+    multiplayerScores = {};
+    multiplayerLastGuessPoints = {};
+    roundRevealed = false;
+    revealInProgress = false;
+
+    document.getElementById("waitingRoom").style.display = "none";
+    document.getElementById("lobby-menu").style.display = "none";
+    document.getElementById("startGame").style.display = "none";
+
+    if (result) {
+        result.classList.add("hidden");
+    }
+
+    multiplayerStatus.textContent = "";
+
+}
+
 async function updatePlayerList() {
 
     const {
@@ -3302,6 +3371,13 @@ async function updatePlayerList() {
 
     multiplayerPlayers =
         players;
+
+    if (players.length === 0 && gameId) {
+
+        await closeEmptyLobby();
+        return;
+
+    }
 
 
     const list =
