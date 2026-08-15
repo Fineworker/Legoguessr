@@ -47,6 +47,7 @@ let lobbyPresenceMonitorTimer = null;
 let lobbyPingTimer = null;
 let lobbyPingCheckTimer = null;
 let publicLobbyRefreshTimer = null;
+let globalPlayerCleanupTimer = null;
 let playerHeartbeatState = {};
 const LOBBY_HEARTBEAT_MS = 5000;
 const LOBBY_STALE_MS = 15000;
@@ -2928,6 +2929,179 @@ async function removePlayerFromLobby(targetPlayerId) {
 
 }
 
+async function cleanupInactivePlayersGlobally() {
+
+    try {
+
+        const staleCutoff =
+            new Date(
+                Date.now() -
+                LOBBY_STALE_MS
+            )
+                .toISOString();
+
+        const {
+            data: stalePlayers,
+            error
+        } =
+            await supabaseClient
+                .from("players")
+                .select("id, game_id")
+                .lt(
+                    "last_seen_at",
+                    staleCutoff
+                );
+
+        if (error) {
+            const message =
+                String(
+                    error?.message ||
+                    error ||
+                    ""
+                );
+
+            if (
+                message.includes(
+                    "last_seen_at"
+                ) ||
+                message.includes(
+                    "column"
+                )
+            ) {
+                return;
+            }
+
+            throw error;
+        }
+
+        if (!stalePlayers || stalePlayers.length === 0) {
+            return;
+        }
+
+        const stalePlayerIds =
+            stalePlayers.map(
+                function(player) {
+                    return player.id;
+                }
+            );
+
+        const {
+            error: deleteError
+        } =
+            await supabaseClient
+                .from("players")
+                .delete()
+                .in(
+                    "id",
+                    stalePlayerIds
+                );
+
+        if (deleteError) {
+            throw deleteError;
+        }
+
+        const gameIds =
+            Array.from(
+                new Set(
+                    stalePlayers
+                        .map(
+                            function(player) {
+                                return player.game_id;
+                            }
+                        )
+                        .filter(
+                            Boolean
+                        )
+                )
+            );
+
+        for (const staleGameId of gameIds) {
+
+            const {
+                data: remainingPlayers,
+                error: remainingError
+            } =
+                await supabaseClient
+                    .from("players")
+                    .select("id")
+                    .eq(
+                        "game_id",
+                        staleGameId
+                    );
+
+            if (remainingError) {
+                throw remainingError;
+            }
+
+            if (
+                !remainingPlayers ||
+                remainingPlayers.length === 0
+            ) {
+                const {
+                    error: deleteGameError
+                } =
+                    await supabaseClient
+                        .from("games")
+                        .delete()
+                        .eq(
+                            "id",
+                            staleGameId
+                        );
+
+                if (deleteGameError) {
+                    throw deleteGameError;
+                }
+            }
+
+        }
+
+    } catch (error) {
+
+        console.warn(
+            "Could not cleanup stale players globally:",
+            error
+        );
+
+    }
+
+}
+
+function startGlobalLobbyCleanup() {
+
+    if (
+        globalPlayerCleanupTimer !==
+        null
+    ) {
+        clearInterval(
+            globalPlayerCleanupTimer
+        );
+    }
+
+    cleanupInactivePlayersGlobally();
+
+    globalPlayerCleanupTimer =
+        window.setInterval(
+            cleanupInactivePlayersGlobally,
+            LOBBY_HEARTBEAT_MS
+        );
+
+}
+
+function stopGlobalLobbyCleanup() {
+
+    if (
+        globalPlayerCleanupTimer !==
+        null
+    ) {
+        clearInterval(
+            globalPlayerCleanupTimer
+        );
+        globalPlayerCleanupTimer =
+            null;
+    }
+
+}
+
 async function cleanStalePlayersForGame(gameIdValue) {
 
     if (!gameIdValue) {
@@ -3669,6 +3843,8 @@ async function refreshPublicLobbies() {
 // ========================================
 // LOBBY MENU BUTTON
 // ========================================
+
+startGlobalLobbyCleanup();
 
 const lobbyButton =
     document.getElementById("lobby-button");
