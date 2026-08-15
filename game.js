@@ -936,25 +936,45 @@ function placeMarker(
     yPercent
 ) {
 
+    const mapRect =
+        map.getBoundingClientRect();
+
+    const wrapperRect =
+        mapWrapper.getBoundingClientRect();
+
     const x =
         (
             xPercent /
             100
         ) *
-        map.offsetWidth;
+        mapRect.width;
 
     const y =
         (
             yPercent /
             100
         ) *
-        map.offsetHeight;
+        mapRect.height;
+
+    const localX =
+        x -
+        (
+            mapRect.left -
+            wrapperRect.left
+        );
+
+    const localY =
+        y -
+        (
+            mapRect.top -
+            wrapperRect.top
+        );
 
     marker.style.left =
-        x + "px";
+        localX + "px";
 
     marker.style.top =
-        y + "px";
+        localY + "px";
 
     marker.style.transform =
         `translate(-50%, -50%) scale(${1 / zoom})`;
@@ -985,10 +1005,10 @@ function getMapPosition(event) {
     ) {
         return null;
     }
-    console.log(x, y);
+
     return {
-        x: x,
-        y: y
+        x: Number(x.toFixed(4)),
+        y: Number(y.toFixed(4))
     };
 }
 
