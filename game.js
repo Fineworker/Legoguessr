@@ -42,6 +42,11 @@ let multiplayerLastGuessPoints = {};
 let roundRevealed = false;
 let revealInProgress = false;
 let selectedLobbyVisibility = "public";
+let lobbyHeartbeatTimer = null;
+let lobbyPresenceMonitorTimer = null;
+let publicLobbyRefreshTimer = null;
+const LOBBY_HEARTBEAT_MS = 5000;
+const LOBBY_STALE_MS = 15000;
 
 
 // ========================================
@@ -2583,6 +2588,289 @@ async function getLobbyHostName(gameIdValue) {
 // CREATE GAME
 // ========================================
 
+async function heartbeatLobbyPresence() {
+
+    if (!gameId || !playerId) {
+        return;
+    }
+
+    const now =
+        new Date()
+            .toISOString();
+
+    const {
+        error
+    } =
+        await supabaseClient
+            .from("players")
+            .update({
+                last_seen_at: now
+            })
+            .eq(
+                "id",
+                playerId
+            )
+            .eq(
+                "game_id",
+                gameId
+            );
+
+    if (error) {
+
+        const message =
+            String(
+                error?.message ||
+                error ||
+                ""
+            );
+
+        if (
+            message.includes(
+                "last_seen_at"
+            ) ||
+            message.includes(
+                "column"
+            )
+        ) {
+            console.warn(
+                "Lobby heartbeat column is not available yet."
+            );
+            return;
+        }
+
+        console.warn(
+            "Lobby heartbeat failed:",
+            error
+        );
+
+    }
+
+}
+
+function startLobbyHeartbeat() {
+
+    if (
+        lobbyHeartbeatTimer !==
+        null
+    ) {
+        clearInterval(
+            lobbyHeartbeatTimer
+        );
+    }
+
+    heartbeatLobbyPresence();
+
+    lobbyHeartbeatTimer =
+        window.setInterval(
+            heartbeatLobbyPresence,
+            LOBBY_HEARTBEAT_MS
+        );
+
+    startLobbyPresenceMonitor();
+
+}
+
+function stopLobbyHeartbeat() {
+
+    if (
+        lobbyHeartbeatTimer !==
+        null
+    ) {
+        clearInterval(
+            lobbyHeartbeatTimer
+        );
+        lobbyHeartbeatTimer =
+            null;
+    }
+
+    if (
+        lobbyPresenceMonitorTimer !==
+        null
+    ) {
+        clearInterval(
+            lobbyPresenceMonitorTimer
+        );
+        lobbyPresenceMonitorTimer =
+            null;
+    }
+
+}
+
+function startLobbyPresenceMonitor() {
+
+    if (
+        lobbyPresenceMonitorTimer !==
+        null
+    ) {
+        clearInterval(
+            lobbyPresenceMonitorTimer
+        );
+    }
+
+    verifyLobbyPresence();
+
+    lobbyPresenceMonitorTimer =
+        window.setInterval(
+            verifyLobbyPresence,
+            LOBBY_HEARTBEAT_MS
+        );
+
+}
+
+async function cleanStalePlayersForGame(gameIdValue) {
+
+    if (!gameIdValue) {
+        return [];
+    }
+
+    try {
+
+        const {
+            data: players,
+            error
+        } =
+            await supabaseClient
+                .from("players")
+                .select("id, last_seen_at")
+                .eq(
+                    "game_id",
+                    gameIdValue
+                );
+
+        if (error) {
+            const message =
+                String(
+                    error?.message ||
+                    error ||
+                    ""
+                );
+
+            if (
+                message.includes(
+                    "last_seen_at"
+                ) ||
+                message.includes(
+                    "column"
+                )
+            ) {
+                return [];
+            }
+
+            throw error;
+        }
+
+        if (!players || players.length === 0) {
+            return [];
+        }
+
+        const staleCutoff =
+            Date.now() -
+            LOBBY_STALE_MS;
+
+        const stalePlayerIds =
+            players
+                .filter(
+                    function(player) {
+
+                        if (
+                            !player.last_seen_at
+                        ) {
+                            return true;
+                        }
+
+                        const seenAt =
+                            new Date(
+                                player.last_seen_at
+                            )
+                                .getTime();
+
+                        return Number.isNaN(
+                            seenAt
+                        ) ||
+                            seenAt <
+                            staleCutoff;
+
+                    }
+                )
+                .map(
+                    function(player) {
+                        return player.id;
+                    }
+                );
+
+        if (stalePlayerIds.length > 0) {
+
+            const {
+                error: deleteError
+            } =
+                await supabaseClient
+                    .from("players")
+                    .delete()
+                    .in(
+                        "id",
+                        stalePlayerIds
+                    );
+
+            if (deleteError) {
+                throw deleteError;
+            }
+
+        }
+
+        const {
+            data: remainingPlayers,
+            error: remainingError
+        } =
+            await supabaseClient
+                .from("players")
+                .select("id")
+                .eq(
+                    "game_id",
+                    gameIdValue
+                );
+
+        if (remainingError) {
+            throw remainingError;
+        }
+
+        return remainingPlayers || [];
+
+    } catch (error) {
+
+        console.warn(
+            "Could not clean stale lobby players:",
+            error
+        );
+
+        return [];
+
+    }
+
+}
+
+async function verifyLobbyPresence() {
+
+    if (!gameId || !isHost) {
+        return;
+    }
+
+    const remainingPlayers =
+        await cleanStalePlayersForGame(
+            gameId
+        );
+
+    if (
+        !remainingPlayers ||
+        remainingPlayers.length === 0
+    ) {
+        await closeEmptyLobby();
+        return;
+    }
+
+    await updatePlayerList();
+
+}
+
 async function createGame() {
 
     const name =
@@ -2690,7 +2978,11 @@ async function createGame() {
                     gameId,
 
                 name:
-                    currentPlayerName
+                    currentPlayerName,
+
+                last_seen_at:
+                    new Date()
+                        .toISOString()
 
             })
             .select()
@@ -2720,7 +3012,7 @@ async function createGame() {
         code
     );
 
-
+    startLobbyHeartbeat();
     listenForPlayers();
 
 }
@@ -2868,7 +3160,11 @@ async function joinGame(codeOverride = null) {
                     gameId,
 
                 name:
-                    currentPlayerName
+                    currentPlayerName,
+
+                last_seen_at:
+                    new Date()
+                        .toISOString()
 
             })
             .select()
@@ -2898,11 +3194,45 @@ async function joinGame(codeOverride = null) {
         code
     );
 
-
+    startLobbyHeartbeat();
     listenForPlayers();
 
 }
 
+
+function startPublicLobbyPolling() {
+
+    if (
+        publicLobbyRefreshTimer !==
+        null
+    ) {
+        clearInterval(
+            publicLobbyRefreshTimer
+        );
+    }
+
+    publicLobbyRefreshTimer =
+        window.setInterval(
+            refreshPublicLobbies,
+            LOBBY_HEARTBEAT_MS
+        );
+
+}
+
+function stopPublicLobbyPolling() {
+
+    if (
+        publicLobbyRefreshTimer !==
+        null
+    ) {
+        clearInterval(
+            publicLobbyRefreshTimer
+        );
+        publicLobbyRefreshTimer =
+            null;
+    }
+
+}
 
 async function refreshPublicLobbies() {
 
@@ -2937,10 +3267,22 @@ async function refreshPublicLobbies() {
 
         }
 
-        const gamesWithHostNames =
+        const visibleGames =
             await Promise.all(
                 games.map(
                     async function(game) {
+
+                        const remainingPlayers =
+                            await cleanStalePlayersForGame(
+                                game.id
+                            );
+
+                        if (
+                            !remainingPlayers ||
+                            remainingPlayers.length === 0
+                        ) {
+                            return null;
+                        }
 
                         const hostName =
                             await getLobbyHostName(
@@ -2955,6 +3297,21 @@ async function refreshPublicLobbies() {
                     }
                 )
             );
+
+        const gamesWithHostNames =
+            visibleGames.filter(
+                function(game) {
+                    return Boolean(game);
+                }
+            );
+
+        if (gamesWithHostNames.length === 0) {
+
+            publicLobbyList.innerHTML =
+                '<div class="public-lobby-empty">No public lobbies right now.</div>';
+            return;
+
+        }
 
         gamesWithHostNames.forEach(
             function(game) {
@@ -3104,18 +3461,18 @@ lobbyButton.addEventListener(
         lobbyMenu.style.display = "flex";
         setLobbyMode("create");
         refreshPublicLobbies();
+        startPublicLobbyPolling();
 
     }
 );
 
-
-// Close lobby menu
 
 closeLobby.addEventListener(
     "click",
     function() {
 
         lobbyMenu.style.display = "none";
+        stopPublicLobbyPolling();
 
     }
 );
@@ -3265,6 +3622,9 @@ async function closeEmptyLobby() {
             );
         }
     }
+
+    stopLobbyHeartbeat();
+    stopPublicLobbyPolling();
 
     gameChannel = null;
     gameId = null;
@@ -3641,6 +4001,36 @@ window.addEventListener(
     function() {
 
         reconnectMultiplayerChannel();
+
+    }
+);
+
+window.addEventListener(
+    "beforeunload",
+    async function() {
+
+        if (!gameId || !playerId) {
+            return;
+        }
+
+        try {
+            await supabaseClient
+                .from("players")
+                .delete()
+                .eq(
+                    "id",
+                    playerId
+                )
+                .eq(
+                    "game_id",
+                    gameId
+                );
+        } catch (error) {
+            console.warn(
+                "Could not clean up player on unload:",
+                error
+            );
+        }
 
     }
 );
