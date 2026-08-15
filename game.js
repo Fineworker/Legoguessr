@@ -3281,12 +3281,21 @@ async function refreshPublicLobbies() {
             throw error;
         }
 
-        publicLobbyList.innerHTML = "";
-
         if (!games || games.length === 0) {
 
-            publicLobbyList.innerHTML =
+            const emptyState =
                 '<div class="public-lobby-empty">No public lobbies right now.</div>';
+
+            if (
+                publicLobbyList.dataset.lobbySignature !==
+                "empty"
+            ) {
+                publicLobbyList.dataset.lobbySignature =
+                    "empty";
+                publicLobbyList.innerHTML =
+                    emptyState;
+            }
+
             return;
 
         }
@@ -3329,10 +3338,50 @@ async function refreshPublicLobbies() {
                 }
             );
 
+        const signature =
+            gamesWithHostNames
+                .map(
+                    function(game) {
+                        return (
+                            game.id +
+                            ":" +
+                            game.code +
+                            ":" +
+                            (game.hostName || "")
+                        );
+                    }
+                )
+                .join("|");
+
+        if (
+            publicLobbyList.dataset.lobbySignature ===
+            signature
+        ) {
+            return;
+        }
+
+        publicLobbyList.dataset.lobbySignature =
+            signature;
+
+        const fragment =
+            document.createDocumentFragment();
+
         if (gamesWithHostNames.length === 0) {
 
-            publicLobbyList.innerHTML =
-                '<div class="public-lobby-empty">No public lobbies right now.</div>';
+            const empty =
+                document.createElement("div");
+
+            empty.className =
+                "public-lobby-empty";
+            empty.textContent =
+                "No public lobbies right now.";
+            fragment.appendChild(
+                empty
+            );
+
+            publicLobbyList.replaceChildren(
+                fragment
+            );
             return;
 
         }
@@ -3367,11 +3416,15 @@ async function refreshPublicLobbies() {
                     }
                 );
 
-                publicLobbyList.appendChild(
+                fragment.appendChild(
                     button
                 );
 
             }
+        );
+
+        publicLobbyList.replaceChildren(
+            fragment
         );
 
     } catch (error) {
@@ -3381,8 +3434,18 @@ async function refreshPublicLobbies() {
             error
         );
 
-        publicLobbyList.innerHTML =
-            '<div class="public-lobby-empty">Public lobbies unavailable.</div>';
+        const lastSignature =
+            publicLobbyList.dataset.lobbySignature;
+
+        if (
+            lastSignature !==
+            "unavailable"
+        ) {
+            publicLobbyList.dataset.lobbySignature =
+                "unavailable";
+            publicLobbyList.innerHTML =
+                '<div class="public-lobby-empty">Public lobbies unavailable.</div>';
+        }
 
     }
 
