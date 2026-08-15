@@ -44,9 +44,13 @@ let revealInProgress = false;
 let selectedLobbyVisibility = "public";
 let lobbyHeartbeatTimer = null;
 let lobbyPresenceMonitorTimer = null;
+let lobbyPingTimer = null;
+let lobbyPingCheckTimer = null;
 let publicLobbyRefreshTimer = null;
+let playerHeartbeatState = {};
 const LOBBY_HEARTBEAT_MS = 5000;
 const LOBBY_STALE_MS = 15000;
+const LOBBY_ACK_TIMEOUT_MS = 15000;
 
 
 // ========================================
@@ -2694,6 +2698,30 @@ function stopLobbyHeartbeat() {
             null;
     }
 
+    if (
+        lobbyPingTimer !==
+        null
+    ) {
+        clearInterval(
+            lobbyPingTimer
+        );
+        lobbyPingTimer =
+            null;
+    }
+
+    if (
+        lobbyPingCheckTimer !==
+        null
+    ) {
+        clearInterval(
+            lobbyPingCheckTimer
+        );
+        lobbyPingCheckTimer =
+            null;
+    }
+
+    playerHeartbeatState = {};
+
 }
 
 function startLobbyPresenceMonitor() {
@@ -2714,6 +2742,169 @@ function startLobbyPresenceMonitor() {
             verifyLobbyPresence,
             LOBBY_HEARTBEAT_MS
         );
+
+}
+
+function registerLobbyAck(playerIdValue) {
+
+    if (!playerIdValue) {
+        return;
+    }
+
+    playerHeartbeatState[playerIdValue] =
+        Date.now();
+
+}
+
+function sendLobbyPing() {
+
+    if (!gameId || !gameChannel) {
+        return;
+    }
+
+    const payload = {
+        gameId: gameId,
+        sentAt: Date.now(),
+        playerId: playerId
+    };
+
+    gameChannel.send({
+        type: "broadcast",
+        event: "lobby-ping",
+        payload: payload
+    });
+
+    if (playerId) {
+        registerLobbyAck(playerId);
+    }
+
+}
+
+function startLobbyPingLoop() {
+
+    if (
+        lobbyPingTimer !==
+        null
+    ) {
+        clearInterval(
+            lobbyPingTimer
+        );
+    }
+
+    if (
+        lobbyPingCheckTimer !==
+        null
+    ) {
+        clearInterval(
+            lobbyPingCheckTimer
+        );
+    }
+
+    sendLobbyPing();
+
+    lobbyPingTimer =
+        window.setInterval(
+            sendLobbyPing,
+            LOBBY_HEARTBEAT_MS
+        );
+
+    lobbyPingCheckTimer =
+        window.setInterval(
+            function() {
+                if (!gameId || !isHost) {
+                    return;
+                }
+
+                const now =
+                    Date.now();
+
+                const stalePlayerIds =
+                    multiplayerPlayers
+                        .filter(
+                            function(player) {
+                                if (
+                                    player.id ===
+                                    playerId
+                                ) {
+                                    return false;
+                                }
+
+                                const lastAck =
+                                    playerHeartbeatState[
+                                        player.id
+                                    ] ||
+                                    0;
+
+                                return (
+                                    lastAck === 0 ||
+                                    now - lastAck >
+                                    LOBBY_ACK_TIMEOUT_MS
+                                );
+                            }
+                        )
+                        .map(
+                            function(player) {
+                                return player.id;
+                            }
+                        );
+
+                stalePlayerIds.forEach(
+                    async function(targetPlayerId) {
+                        await removePlayerFromLobby(
+                            targetPlayerId
+                        );
+                    }
+                );
+
+            },
+            LOBBY_HEARTBEAT_MS
+        );
+
+}
+
+async function removePlayerFromLobby(targetPlayerId) {
+
+    if (!gameId || !targetPlayerId) {
+        return;
+    }
+
+    try {
+
+        const {
+            error
+        } =
+            await supabaseClient
+                .from("players")
+                .delete()
+                .eq(
+                    "id",
+                    targetPlayerId
+                )
+                .eq(
+                    "game_id",
+                    gameId
+                );
+
+        if (error) {
+            throw error;
+        }
+
+        delete playerHeartbeatState[
+            targetPlayerId
+        ];
+
+        if (isHost) {
+            await updatePlayerList();
+        }
+
+    } catch (error) {
+
+        console.warn(
+            "Could not remove stale lobby player:",
+            error
+        );
+
+    }
 
 }
 
@@ -3213,12 +3404,16 @@ async function joinGame(codeOverride = null) {
     playerId =
         player.id;
 
+    playerHeartbeatState[playerId] =
+        Date.now();
+
 
     showWaitingRoom(
         code
     );
 
     startLobbyHeartbeat();
+    startLobbyPingLoop();
     listenForPlayers();
 
 }
@@ -3724,6 +3919,7 @@ async function closeEmptyLobby() {
     multiplayerLastGuessPoints = {};
     roundRevealed = false;
     revealInProgress = false;
+    playerHeartbeatState = {};
 
     document.getElementById("waitingRoom").style.display = "none";
     document.getElementById("lobby-menu").style.display = "none";
@@ -3897,6 +4093,75 @@ function listenForPlayers() {
                 function() {
 
                     updatePlayerList();
+
+                }
+            )
+
+            .on(
+                "broadcast",
+                {
+                    event: "lobby-ping"
+                },
+                function({ payload }) {
+
+                    if (
+                        !payload ||
+                        payload.gameId !==
+                        gameId
+                    ) {
+                        return;
+                    }
+
+                    if (
+                        !gameChannel ||
+                        !playerId
+                    ) {
+                        return;
+                    }
+
+                    gameChannel.send({
+                        type: "broadcast",
+                        event: "lobby-pong",
+                        payload: {
+                            gameId: gameId,
+                            playerId: playerId,
+                            name: currentPlayerName,
+                            sentAt: payload.sentAt
+                        }
+                    });
+
+                }
+            )
+
+            .on(
+                "broadcast",
+                {
+                    event: "lobby-pong"
+                },
+                function({ payload }) {
+
+                    if (
+                        !payload ||
+                        payload.gameId !==
+                        gameId
+                    ) {
+                        return;
+                    }
+
+                    if (isHost) {
+                        registerLobbyAck(
+                            payload.playerId
+                        );
+                    }
+
+                    if (
+                        payload.playerId ===
+                        playerId
+                    ) {
+                        registerLobbyAck(
+                            playerId
+                        );
+                    }
 
                 }
             )
