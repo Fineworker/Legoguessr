@@ -2833,7 +2833,31 @@ async function cleanStalePlayersForGame(gameIdValue) {
             throw remainingError;
         }
 
-        return remainingPlayers || [];
+        const activePlayers =
+            remainingPlayers || [];
+
+        if (activePlayers.length === 0) {
+
+            const {
+                error: deleteGameError
+            } =
+                await supabaseClient
+                    .from("games")
+                    .delete()
+                    .eq(
+                        "id",
+                        gameIdValue
+                    );
+
+            if (deleteGameError) {
+                throw deleteGameError;
+            }
+
+            return [];
+
+        }
+
+        return activePlayers;
 
     } catch (error) {
 
