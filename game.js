@@ -960,69 +960,26 @@ function placeMarker(
 // ========================================
 
 function getMapPosition(event) {
-
-    const rect =
-        mapView.getBoundingClientRect();
-
-    const screenX =
-        event.clientX -
-        rect.left;
-
-    const screenY =
-        event.clientY -
-        rect.top;
-
-    const cameraX =
-        screenX -
-        panX;
-
-    const cameraY =
-        screenY -
-        panY;
-
-    const mapX =
-        cameraX /
-        zoom;
-
-    const mapY =
-        cameraY /
-        zoom;
-
-    const mapWidth =
-        map.offsetWidth;
-
-    const mapHeight =
-        map.offsetHeight;
+    const rect = map.getBoundingClientRect();
 
     const x =
-        (
-            mapX /
-            mapWidth
-        ) *
-        100;
+        ((event.clientX - rect.left) / rect.width) * 100;
 
     const y =
-        (
-            mapY /
-            mapHeight
-        ) *
-        100;
+        ((event.clientY - rect.top) / rect.height) * 100;
+
     if (
         x < 0 ||
         x > 100 ||
         y < 0 ||
         y > 100
     ) {
-
         return null;
-
     }
 
     return {
-
-        x:x,
-        y:x
-
+        x: x,
+        y: y
     };
 }
 
