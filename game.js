@@ -1020,8 +1020,8 @@ function getMapPosition(event) {
 
     return {
 
-        x:x.toFixed(1),
-        y:y.toFixed(1)
+        x:x,
+        y:x
 
     };
 }
