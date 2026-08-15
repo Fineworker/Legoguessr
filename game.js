@@ -976,7 +976,7 @@ function getMapPosition(event) {
     ) {
         return null;
     }
-
+    console.log(x, y);
     return {
         x: x,
         y: y
