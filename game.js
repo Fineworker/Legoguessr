@@ -937,39 +937,25 @@ function placeMarker(
     yPercent
 ) {
 
-    const mapRect =
-        map.getBoundingClientRect();
+    const {
+        width: mapWidth,
+        height: mapHeight
+    } =
+        getMapWorldSize();
 
-    const wrapperRect =
-        mapWrapper.getBoundingClientRect();
-
-    const x =
+    const localX =
         (
             xPercent /
             100
         ) *
-        mapRect.width;
+        mapWidth;
 
-    const y =
+    const localY =
         (
             yPercent /
             100
         ) *
-        mapRect.height;
-
-    const localX =
-        x -
-        (
-            mapRect.left -
-            wrapperRect.left
-        );
-
-    const localY =
-        y -
-        (
-            mapRect.top -
-            wrapperRect.top
-        );
+        mapHeight;
 
     marker.style.left =
         localX + "px";
@@ -978,7 +964,7 @@ function placeMarker(
         localY + "px";
 
     marker.style.transform =
-        `translate(-50%, -50%) scale(${1 / zoom})`;
+        `translate(-50%, -50%) scale(${1 / Math.max(zoom, 0.001)})`;
 
     marker.style.display =
         "block";
@@ -990,13 +976,40 @@ function placeMarker(
 // ========================================
 
 function getMapPosition(event) {
-    const rect = map.getBoundingClientRect();
+    const viewRect =
+        mapView.getBoundingClientRect();
+
+    const localX =
+        (
+            event.clientX -
+            viewRect.left -
+            panX
+        ) /
+        zoom;
+
+    const localY =
+        (
+            event.clientY -
+            viewRect.top -
+            panY
+        ) /
+        zoom;
+
+    const mapWidth =
+        map.offsetWidth ||
+        map.clientWidth ||
+        900;
+
+    const mapHeight =
+        map.offsetHeight ||
+        map.clientHeight ||
+        900;
 
     const x =
-        ((event.clientX - rect.left) / rect.width) * 100;
+        (localX / mapWidth) * 100;
 
     const y =
-        ((event.clientY - rect.top) / rect.height) * 100;
+        (localY / mapHeight) * 100;
 
     if (
         x < 0 ||
@@ -1832,6 +1845,30 @@ function calculatePoints(
 
 
 // ========================================
+// MAP WORLD SIZE
+// ========================================
+
+function getMapWorldSize() {
+
+    const width =
+        mapWrapper.clientWidth ||
+        map.offsetWidth ||
+        900;
+
+    const height =
+        mapWrapper.clientHeight ||
+        map.offsetHeight ||
+        900;
+
+    return {
+        width,
+        height
+    };
+
+}
+
+
+// ========================================
 // DRAW LINE
 // ========================================
 
@@ -1842,11 +1879,11 @@ function drawLine(
     y2
 ) {
 
-    const mapWidth =
-        map.offsetWidth;
-
-    const mapHeight =
-        map.offsetHeight;
+    const {
+        width: mapWidth,
+        height: mapHeight
+    } =
+        getMapWorldSize();
 
     const startX =
         (
@@ -1902,7 +1939,7 @@ function drawLine(
         startX + "px";
 
     line.style.top =
-        startY + "px";
+        `${startY - 2}px`;
 
     line.style.width =
         length + "px";
@@ -4643,11 +4680,11 @@ function createMultiplayerGuessLine(
     guess
 ) {
 
-    const mapWidth =
-        map.offsetWidth;
-
-    const mapHeight =
-        map.offsetHeight;
+    const {
+        width: mapWidth,
+        height: mapHeight
+    } =
+        getMapWorldSize();
 
     const startX =
         (guess.x / 100) *
@@ -4703,7 +4740,7 @@ function createMultiplayerGuessLine(
         startX + "px";
 
     lineElement.style.top =
-        startY + "px";
+        `${startY - 2}px`;
 
     lineElement.style.width =
         lineLength + "px";
