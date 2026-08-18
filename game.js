@@ -664,6 +664,9 @@ const scoreboard =
 
 function updateCamera() {
 
+    mapWrapper.style.transformOrigin =
+        "0 0";
+
     mapWrapper.style.transform =
         `translate(${panX}px, ${panY}px) scale(${zoom})`;
 
@@ -793,37 +796,42 @@ mapView.addEventListener(
 
         }
 
-        const rect =
+        const viewRect =
             mapView.getBoundingClientRect();
+
+        const mapRect =
+            mapWrapper.getBoundingClientRect();
 
         const mouseX =
             event.clientX -
-            rect.left;
+            viewRect.left;
 
         const mouseY =
             event.clientY -
-            rect.top;
+            viewRect.top;
+
+        const worldX =
+            (
+                event.clientX -
+                mapRect.left
+            ) /
+            oldZoom;
+
+        const worldY =
+            (
+                event.clientY -
+                mapRect.top
+            ) /
+            oldZoom;
 
         panX =
             mouseX -
-            (
-                (
-                    mouseX -
-                    panX
-                ) /
-                oldZoom
-            ) *
+            worldX *
             zoom;
 
         panY =
             mouseY -
-            (
-                (
-                    mouseY -
-                    panY
-                ) /
-                oldZoom
-            ) *
+            worldY *
             zoom;
 
         updateCamera();
@@ -976,33 +984,31 @@ function placeMarker(
 // ========================================
 
 function getMapPosition(event) {
-    const viewRect =
-        mapView.getBoundingClientRect();
+    const mapRect =
+        mapWrapper.getBoundingClientRect();
 
     const localX =
         (
             event.clientX -
-            viewRect.left -
-            panX
+            mapRect.left
         ) /
         zoom;
 
     const localY =
         (
             event.clientY -
-            viewRect.top -
-            panY
+            mapRect.top
         ) /
         zoom;
 
     const mapWidth =
+        mapWrapper.offsetWidth ||
         map.offsetWidth ||
-        map.clientWidth ||
         900;
 
     const mapHeight =
+        mapWrapper.offsetHeight ||
         map.offsetHeight ||
-        map.clientHeight ||
         900;
 
     const x =
